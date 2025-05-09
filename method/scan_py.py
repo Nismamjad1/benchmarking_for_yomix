@@ -17,10 +17,9 @@ benchmark_problems = [
    
 ]
 
-signature_sizes = [1]
 num_runs = 10
 
-def run_benchmark(adata, groups, comparison_mode, reference, groupby, cancer_a, cancer_b, method,  classifier="svm"):
+def run_benchmark(adata, groups, signature_sizes , comparison_mode, reference, groupby, cancer_a, cancer_b, method,  classifier="svm"):
     
     results = {}
     
@@ -53,7 +52,7 @@ def run_benchmark(adata, groups, comparison_mode, reference, groupby, cancer_a, 
 
     results[f"{cancer_a}_vs_{cancer_b}"] = {}
 
-    for size in [1, 3, 10, 20]:
+    for size in signature_sizes:
         top_genes = ranked_genes[:size]
 
         mcc_scores = []
@@ -107,21 +106,32 @@ def run_benchmark(adata, groups, comparison_mode, reference, groupby, cancer_a, 
             recall_scores.append(recall)
             f1_scores.append(f1)
 
+        
         mean_mcc = np.mean(mcc_scores)
-        # Compute mean scores over multiple runs
-        mean_mcc = np.mean(mcc_scores)
+        std_precision = np.std(precision_scores)
+
         mean_precision = np.mean(precision_scores)
+        std_recall = np.std(recall_scores)
         mean_recall = np.mean(recall_scores)
+        std_f1 = np.std(f1_scores)
         mean_f1 = np.mean(f1_scores)
+        std_mcc = np.std(mcc_scores)
 
         print(f"Signature size: {size}, Mean MCC (over {len(mcc_scores)} runs): {mean_mcc:.4f}")
         results[f"{cancer_a}_vs_{cancer_b}"]["DE_Time_Taken"] = de_time_taken
+        
         results[f"{cancer_a}_vs_{cancer_b}"][f"{size}_features_mcc"] = mean_mcc
+        results[f"{cancer_a}_vs_{cancer_b}"][f"{size}_features_mcc_std"] = std_mcc
+        
+        
+        
         results[f"{cancer_a}_vs_{cancer_b}"][f"{size}_features_precision"] = mean_precision
-        results[f"{cancer_a}_vs_{cancer_b}"][f"{size}_features_recall"] = mean_recall
-        results[f"{cancer_a}_vs_{cancer_b}"][f"{size}_features_f1"] = mean_f1    
-    
+        results[f"{cancer_a}_vs_{cancer_b}"][f"{size}_features_precision_std"] = std_precision
 
-    
+        results[f"{cancer_a}_vs_{cancer_b}"][f"{size}_features_recall"] = mean_recall
+        results[f"{cancer_a}_vs_{cancer_b}"][f"{size}_features_recall_std"] = std_recall
+
+        results[f"{cancer_a}_vs_{cancer_b}"][f"{size}_features_f1"] = mean_f1
+        results[f"{cancer_a}_vs_{cancer_b}"][f"{size}_features_f1_std"] = std_f1   
 
     return results

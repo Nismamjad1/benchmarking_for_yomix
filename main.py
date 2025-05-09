@@ -1,13 +1,10 @@
 import scanpy as sc
 import numpy as np
 import pandas as pd
-from method.cosg import run_cosg
+from method.cosg_file import run_cosg
 from method.scan_py import run_benchmark
 from result.result import save_results
-#from method.seu_rat import run_seurat_markers
 
-
-import pdb
 # Configurations  ("T_LUAD", "T_LUSC"),
    # ("T_STAD", "T_PAAD"),
    # ("T_GBM", "T_LGG"),
@@ -16,7 +13,7 @@ import pdb
    # ("T_UCEC", "T_UCS"),
    # ("T_CESC", "T_ESCA"),
    # ("T_THYM", "T_HNSC"),
-signature_sizes = [1]
+signature_sizes = [1] #we change signatutre sizes to [1,3,10,20]
 
 
 benchmark_problems = [
@@ -25,6 +22,11 @@ benchmark_problems = [
     
    
 ]
+"""
+   you can add more benchmark problems here
+   switch between one-vs-rest and pairwise
+   switch between cosg and scanpy(t-test, logreg, wilcoxon)
+"""
 
 # Main benchmarking clearly defined
 def main(
@@ -57,14 +59,14 @@ def main(
             groups = [cancer_a]
             reference = "rest"
         else:
-            adata.obs['binary_labels'] = adata_temp.obs['labels'].replace({cancer_a: 'Cluster1', cancer_b: 'Cluster2'})
+            adata.obs['binary_labels'] = adata_temp.obs['label'].replace({cancer_a: 'Cluster1', cancer_b: 'Cluster2'})
             groupby = "binary_labels"
             groups = ["Cluster1"]
             reference = "Cluster2"
 
         # Run chosen gene-ranking method clearly
         if marker_method == "cosg":
-            marker_genes_df = run_cosg(adata_temp, n_genes=max(signature_sizes), groupby=groupby)
+            marker_genes_df = run_cosg(adata_temp, signature_sizes, groupby=groupby)
             key = f"{cancer_a}_vs_Rest"
             if key in marker_genes_df:
                 ranked_genes[key] = marker_genes_df[key]
@@ -72,17 +74,11 @@ def main(
                 print(f" Key {key} not found in COSG result.")
 
         elif marker_method=="scanpy":  # scanpy method
-            method="wilcoxon"
+            method="wilcoxon"  # Can switch between "t-test", "logreg", "wilcoxon"
             print(f"Calling run_benchmark with groups={groups}, reference={reference}, groupby={groupby}")
-            ranked_genes.update( run_benchmark(adata_temp, groups, comparison_mode, reference, groupby, cancer_a, cancer_b, method=method,  classifier="svm"))
+            ranked_genes.update( run_benchmark(adata_temp, groups, signature_sizes, comparison_mode, reference, groupby, cancer_a, cancer_b, method=method,  classifier="svm"))
             print("\nFinal Benchmark Results:")
             print(ranked_genes)
-        '''elif marker_method == "seurat":
-            marker_genes_df = run_seurat_markers(adata_temp, groupby=groupby, group_1=groups[0], group_2=reference)
-            ranked_genes.update(marker_genes_df.set_index("gene").to_dict("index"))
-            print("\nSeurat marker results:")
-            print(marker_genes_df.head())
-        '''
     return ranked_genes
 
 if __name__ == "__main__":
@@ -108,12 +104,12 @@ if __name__ == "__main__":
         case _:
             print(" Invalid dataset! Defaulting to TCGA.")
             dataset_path = datasets["TCGA"]
-    #adata=sc.read_h5ad(datasetpath)
-    adata = sc.read_h5ad("/home/nisma/new_yomix/yomix/xd_tcga_labels_umap.h5ad")
-    marker_method = "cosg"#  Can switch between "cosg" and "scanpy"
+    adata=sc.read_h5ad(dataset_path)
+    #adata = sc.read_h5ad("/home/nisma/new_yomix/yomix/xd_tcga_labels_umap.h5ad")
+    marker_method = "scanpy"#  Can switch between "cosg" and "scanpy"
     comparison_mode = "one-vs-rest"  #  Can switch between "one-vs-rest" and "pairwise"
     classifier_method = "svm"  #  Can switch between "svm", "logistic", "tree", "forest", "boosting"
-    method = "wilcoxon"
+    method = "wilcoxon"  #  Can switch between "t-test", "logreg", "wilcoxon"
     
     results=main(
         adata,
@@ -122,4 +118,4 @@ if __name__ == "__main__":
         classifier_method="svm"     # logistic, tree, forest, boosting
     )
     
-    save_results(results, marker_method, comparison_mode, method, output_dir="/home/nisma/new_yomix/yomix/project/output")
+    save_results(results, marker_method, comparison_mode, method, selected_dataset, output_dir="/home/nisma/new_yomix/yomix/project/output/PBMC") #add directory where you want to save 

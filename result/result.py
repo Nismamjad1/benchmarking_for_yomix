@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-def save_results(results, marker_method, comaprsion_mode, method, output_dir="/home/nisma/new_yomix/yomix/output"):
+def save_results(results, marker_method, comaprsion_mode, method, selected_dataset, output_dir="/home/nisma/new_yomix/yomix/output"):
     """
     Saves benchmarking results in a structured format, including MCC scores and feature selections.
     
@@ -43,9 +43,9 @@ def save_results(results, marker_method, comaprsion_mode, method, output_dir="/h
    
     #  Different file naming based on method
     if marker_method == "cosg":
-        output_csv = os.path.join(output_dir, f"benchmark_mcc_scores_{marker_method}.csv")
+        output_csv = os.path.join(output_dir, f"benchmark_mcc_scores_{selected_dataset}_{marker_method}.csv")
     else:  # If using scanpy methods
-        output_csv = os.path.join(output_dir, f"benchmark_mcc_scores_{marker_method}_{method}_{comaprsion_mode}.csv")
+        output_csv = os.path.join(output_dir, f"benchmark_mcc_scores_{selected_dataset}_{marker_method}_{method}_{comaprsion_mode}.csv")
 
     # Save DataFrame to CSV
     df_results.to_csv(output_csv, index=False)

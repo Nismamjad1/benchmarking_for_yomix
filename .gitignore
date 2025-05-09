@@ -1,3 +1,36 @@
-*.scanpymine.py
-*.cosg.ipynb
-*.import_scanpy_as_sc.py
+# R-specific
+.RData
+.Rhistory
+
+# Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.so
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Temporary/Lock files
+*~
+*.swp
+*.lock
+*.bak
+*.tmp
+*.log
+*.DS_Store
+
+# Output or intermediate files
+output/
+*.h5ad
+*.png
+*.pdf
+
+# Ignore test or scratch scripts (optional)
+method/impors pd.py
+method/import pandas as pd.py
+# Ignore all Jupyter notebooks
+*.ipynb
+
+# Ignore the entire json/ folder
+json/
