@@ -5,7 +5,7 @@
 
 # then you will get csv files for each
 ### you use the csv files to get the heatmaps for mcc scores, time taken by each method
-# i am attaching the yomix csv file , you can compare the results by using yomix 
+## i am attaching the yomix csv file in the output folder, you can compare the results by using yomix 
 ### save the csv and use 
 1. time_result.py for time graph 
 2. heatmap.py for the heatmaps for different set of features
