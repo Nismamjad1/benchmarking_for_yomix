@@ -1,4 +1,5 @@
-# first you have to choose between the options:
+# You have to choose between the options:
+Run main.py to begin with and change among the following options. 
 1. scanpy (t-test , wilconxon)
 2.  cosg
 3.  one vs rest or pairwise
