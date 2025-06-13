@@ -4,10 +4,10 @@ import seaborn as sns
 
 
 # Load the CSVs
-scanpy_df = pd.read_csv("/home/nisma/new_yomix/yomix/project/output/TCGA/benchmark_mcc_scores_TCGA_scanpy_wilcoxon_one-vs-rest.csv")
-cosg_df = pd.read_csv("/home/nisma/new_yomix/yomix/project/output/TCGA/benchmark_mcc_scores_TCGA_cosg.csv")
-yomix_df = pd.read_csv("/home/nisma/new_yomix/yomix/project/output/TCGA/yomix _TCGA- Sheet1.csv")
-scan_py_2 = pd.read_csv("/home/nisma/new_yomix/yomix/project/output/TCGA/benchmark_mcc_scores_TCGA_scanpy_t-test_one-vs-rest.csv")
+scanpy_df = pd.read_csv("/output/TCGA/benchmark_mcc_scores_TCGA_scanpy_wilcoxon_one-vs-rest.csv")
+cosg_df = pd.read_csv("/output/TCGA/benchmark/benchmarking_for_yomix/output/TCGA/benchmark_mcc_scores_TCGA_cosg.csv")
+yomix_df = pd.read_csv("/output/TCGA/benchmarking_for_yomix/output/TCGA/yomix-Sheet1.csv")
+scan_py_2 = pd.read_csv("/output/TCGA/benchmarking_for_yomix/output/TCGA/benchmark_mcc_scores_TCGA_scanpy_t-test_one-vs-rest.csv")
 
 # Add method labels
 scanpy_df["Method"] = "Scanpy_wilcoxon"

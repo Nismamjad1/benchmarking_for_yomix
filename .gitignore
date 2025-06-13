@@ -34,3 +34,5 @@ method/import pandas as pd.py
 
 # Ignore the entire json/ folder
 json/
+
+method/scanpymine.py

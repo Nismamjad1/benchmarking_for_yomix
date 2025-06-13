@@ -1,12 +1,11 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Load the 4 CSV files
-cosg = pd.read_csv("//home/nisma/new_yomix/yomix/project/output/LAWLOR/benchmark_mcc_scores_TCGA_cosg.csv")
-scanpy_wilcoxon = pd.read_csv("//home/nisma/new_yomix/yomix/project/output/LAWLOR/benchmark_mcc_scores_TCGA_scanpy_wilcoxon_one-vs-rest.csv")
-scanpy_ttest = pd.read_csv("//home/nisma/new_yomix/yomix/project/output/LAWLOR/benchmark_mcc_scores_TCGA_scanpy_t-test_one-vs-rest.csv")
-yomix = pd.read_csv("/home/nisma/new_yomix/yomix/project/output/LAWLOR/yomix - Sheet1.csv")
-
+# Load the CSVs
+scanpy_wilcoxon = pd.read_csv("output/benchmark/benchmarking_for_yomix/output/TCGA/benchmark_mcc_scores_TCGA_scanpy_wilcoxon_one-vs-rest.csv")
+cosg = pd.read_csv("output/benchmark/benchmarking_for_yomix/output/TCGA/benchmark_mcc_scores_TCGA_cosg.csv")
+yomix = pd.read_csv("output/benchmark/benchmarking_for_yomix/output/TCGA/yomix - Sheet1.csv")
+scanpy_ttest = pd.read_csv("output/benchmark/benchmarking_for_yomix/output/TCGA/benchmark_mcc_scores_TCGA_scanpy_t-test_one-vs-rest.csv")
 # Add method labels
 yomix["Method"] = "Yomix"
 scanpy_wilcoxon["Method"] = "Scanpy Wilcoxon"

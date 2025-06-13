@@ -35,11 +35,9 @@ def main(
     comparison_mode,   # can switch to "one-vs-rest" vs "pairwise"
     classifier_method="svm"
 ):
-    results = {}
     ranked_genes = {}
-    adata_temp=adata.copy()
     if comparison_mode == "one-vs-rest":
-        labels = adata_temp.obs["labels"].unique()
+        labels = adata.obs["labels"].unique()
         #define rest here what is insdie rest
         labels = [label for label in labels if label != "rest"]
         benchmarks = [(label, "rest") for label in labels]
@@ -54,19 +52,19 @@ def main(
 
         # Prepare labels clearly
         if cancer_b == "rest":
-            adata_temp.obs["binary_labels"] = np.where(adata_temp.obs["labels"] == cancer_a, cancer_a, "rest")
-            groupby = "binary_labels"
+            adata.obs["binary_labels"] = np.where(adata.obs["labels"] == cancer_a, cancer_a, "rest")
+            
             groups = [cancer_a]
             reference = "rest"
         else:
-            adata.obs['binary_labels'] = adata_temp.obs['label'].replace({cancer_a: 'Cluster1', cancer_b: 'Cluster2'})
+            adata.obs['binary_labels'] = adata.obs['label'].replace({cancer_a: 'Cluster1', cancer_b: 'Cluster2'})
             groupby = "binary_labels"
             groups = ["Cluster1"]
             reference = "Cluster2"
 
         # Run chosen gene-ranking method clearly
         if marker_method == "cosg":
-            marker_genes_df = run_cosg(adata_temp, signature_sizes, groupby=groupby)
+            marker_genes_df = run_cosg(adata, signature_sizes, groupby=groupby)
             key = f"{cancer_a}_vs_Rest"
             if key in marker_genes_df:
                 ranked_genes[key] = marker_genes_df[key]
@@ -76,7 +74,7 @@ def main(
         elif marker_method=="scanpy":  # scanpy method
             method="wilcoxon"  # Can switch between "t-test", "logreg", "wilcoxon"
             print(f"Calling run_benchmark with groups={groups}, reference={reference}, groupby={groupby}")
-            ranked_genes.update( run_benchmark(adata_temp, groups, signature_sizes, comparison_mode, reference, groupby, cancer_a, cancer_b, method=method,  classifier="svm"))
+            ranked_genes.update( run_benchmark(adata, groups, signature_sizes, comparison_mode, reference, groupby, cancer_a, cancer_b, method=method,  classifier="svm"))
             print("\nFinal Benchmark Results:")
             print(ranked_genes)
     return ranked_genes
