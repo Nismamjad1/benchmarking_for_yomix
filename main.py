@@ -4,6 +4,8 @@ import pandas as pd
 from method.cosg_file import run_cosg
 from method.scan_py import run_benchmark
 from result.result import save_results
+from pathlib import Path
+import argparse
 
 # Configurations  ("T_LUAD", "T_LUSC"),
    # ("T_STAD", "T_PAAD"),
@@ -83,41 +85,35 @@ def main(
     return ranked_genes
 
 if __name__ == "__main__":
-    # datasets = {
-    #     "TCGA": "/home/nisma/new_yomix/yomix/xd_tcga_labels_umap.h5ad",
-    #     "PMBC": "/home/nisma/new_yomix/yomix/pmbc_data.h5ad",
-    #     "Lawlor": "/home/nisma/new_yomix/yomix/lawlor.h5ad"
-    # }
+    parser = argparse.ArgumentParser(description="Yomix command-line tool")
 
-   
-    selected_dataset = "PBMC"  
+    parser.add_argument(
+        "file", type=str, nargs="?", default=None, help="the .ha5d file to open"
+    )
+        
+    args = parser.parse_args()
 
-    # match selected_dataset:
-    #     case "TCGA":
-    #         dataset_path = datasets["TCGA"]
-    #         print(" Running benchmark on TCGA dataset")
-    #     case "PMBC":
-    #         dataset_path = datasets["PMBC"]
-    #         print(" Running benchmark on PMBC dataset")
-    #     case "Lawlor":
-    #         dataset_path = datasets["Lawlor"]
-    #         print(" Running benchmark on Lawlor dataset")
-    #     case _:
-    #         print(" Invalid dataset! Defaulting to TCGA.")
-    #         dataset_path = datasets["TCGA"]
-    # adata=sc.read_h5ad(dataset_path)
-    adata = sc.read_h5ad("/home/pierre/yomix/yomix/example/pbmc.h5ad")
-    #adata = sc.read_h5ad("/home/nisma/new_yomix/yomix/xd_tcga_labels_umap.h5ad")
-    marker_method = "cosg"#  Can switch between "cosg" and "scanpy"
+    argument = args.example
+
+    if argument:
+        filearg = Path(__file__).parent / "data" / "pbmc.h5ad"
+    else:
+        assert (
+            args.file is not None
+        ), "yomix: error: the following arguments are required: file"
+        filearg = Path(args.file)
+
+    xd = sc.read_h5ad(filearg.absolute())
+    #xd = sc.read_h5ad("/home/nisma/new_yomix/yomix/xd_tcga_labels_umap.h5ad")
+
     comparison_mode = "one-vs-rest"  #  Can switch between "one-vs-rest" and "pairwise"
     classifier_method = "svm"  #  Can switch between "svm", "logistic", "tree", "forest", "boosting"
-    method = "wilcoxon"  #  Can switch between "t-test", "logreg", "wilcoxon"
-    
+    # method = "wilcoxon"  #  Can switch between "t-test", "logreg", "wilcoxon"
+
     results=main(
-        adata,
-        marker_method=marker_method,
+        xd,
         comparison_mode=comparison_mode,
         classifier_method="svm"     # logistic, tree, forest, boosting
     )
-    
-    # save_results(results, marker_method, comparison_mode, method, selected_dataset, output_dir="/home/nisma/new_yomix/yomix/project/output/PBMC") #add directory where you want to save 
+
+    save_results(results, comparison_mode, output_dir="results") #add directory where you want to save 

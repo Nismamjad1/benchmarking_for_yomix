@@ -21,7 +21,6 @@ __pycache__/
 *.DS_Store
 
 # Output or intermediate files
-output/
 *.h5ad
 *.png
 *.pdf
