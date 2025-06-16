@@ -37,7 +37,7 @@ def main(
 ):
     ranked_genes = {}
     if comparison_mode == "one-vs-rest":
-        labels = adata.obs["labels"].unique()
+        labels = adata.obs["label"].unique()
         #define rest here what is insdie rest
         labels = [label for label in labels if label != "rest"]
         benchmarks = [(label, "rest") for label in labels]
@@ -52,11 +52,12 @@ def main(
 
         # Prepare labels clearly
         if cancer_b == "rest":
-            adata.obs["binary_labels"] = np.where(adata.obs["labels"] == cancer_a, cancer_a, "rest")
-            
+            adata.obs["binary_labels"] = np.where(adata.obs["label"] == cancer_a, cancer_a, "rest")
+            groupby = "binary_labels"
             groups = [cancer_a]
             reference = "rest"
         else:
+            adata.obs['binary_labels'] = adata.obs['label'].replace({cancer_a: 'Cluster1', cancer_b: 'Cluster2'})
             adata.obs['binary_labels'] = adata.obs['label'].replace({cancer_a: 'Cluster1', cancer_b: 'Cluster2'})
             groupby = "binary_labels"
             groups = ["Cluster1"]
@@ -64,6 +65,7 @@ def main(
 
         # Run chosen gene-ranking method clearly
         if marker_method == "cosg":
+            marker_genes_df = run_cosg(adata, signature_sizes, groupby=groupby)
             marker_genes_df = run_cosg(adata, signature_sizes, groupby=groupby)
             key = f"{cancer_a}_vs_Rest"
             if key in marker_genes_df:
@@ -75,36 +77,38 @@ def main(
             method="wilcoxon"  # Can switch between "t-test", "logreg", "wilcoxon"
             print(f"Calling run_benchmark with groups={groups}, reference={reference}, groupby={groupby}")
             ranked_genes.update( run_benchmark(adata, groups, signature_sizes, comparison_mode, reference, groupby, cancer_a, cancer_b, method=method,  classifier="svm"))
+            ranked_genes.update( run_benchmark(adata, groups, signature_sizes, comparison_mode, reference, groupby, cancer_a, cancer_b, method=method,  classifier="svm"))
             print("\nFinal Benchmark Results:")
             print(ranked_genes)
     return ranked_genes
 
 if __name__ == "__main__":
-    datasets = {
-        "TCGA": "/home/nisma/new_yomix/yomix/xd_tcga_labels_umap.h5ad",
-        "PMBC": "/home/nisma/new_yomix/yomix/pmbc_data.h5ad",
-        "Lawlor": "/home/nisma/new_yomix/yomix/lawlor.h5ad"
-    }
+    # datasets = {
+    #     "TCGA": "/home/nisma/new_yomix/yomix/xd_tcga_labels_umap.h5ad",
+    #     "PMBC": "/home/nisma/new_yomix/yomix/pmbc_data.h5ad",
+    #     "Lawlor": "/home/nisma/new_yomix/yomix/lawlor.h5ad"
+    # }
 
    
-    selected_dataset = "TCGA"  
+    selected_dataset = "PBMC"  
 
-    match selected_dataset:
-        case "TCGA":
-            dataset_path = datasets["TCGA"]
-            print(" Running benchmark on TCGA dataset")
-        case "PMBC":
-            dataset_path = datasets["PMBC"]
-            print(" Running benchmark on PMBC dataset")
-        case "Lawlor":
-            dataset_path = datasets["Lawlor"]
-            print(" Running benchmark on Lawlor dataset")
-        case _:
-            print(" Invalid dataset! Defaulting to TCGA.")
-            dataset_path = datasets["TCGA"]
-    adata=sc.read_h5ad(dataset_path)
+    # match selected_dataset:
+    #     case "TCGA":
+    #         dataset_path = datasets["TCGA"]
+    #         print(" Running benchmark on TCGA dataset")
+    #     case "PMBC":
+    #         dataset_path = datasets["PMBC"]
+    #         print(" Running benchmark on PMBC dataset")
+    #     case "Lawlor":
+    #         dataset_path = datasets["Lawlor"]
+    #         print(" Running benchmark on Lawlor dataset")
+    #     case _:
+    #         print(" Invalid dataset! Defaulting to TCGA.")
+    #         dataset_path = datasets["TCGA"]
+    # adata=sc.read_h5ad(dataset_path)
+    adata = sc.read_h5ad("/home/pierre/yomix/yomix/example/pbmc.h5ad")
     #adata = sc.read_h5ad("/home/nisma/new_yomix/yomix/xd_tcga_labels_umap.h5ad")
-    marker_method = "scanpy"#  Can switch between "cosg" and "scanpy"
+    marker_method = "cosg"#  Can switch between "cosg" and "scanpy"
     comparison_mode = "one-vs-rest"  #  Can switch between "one-vs-rest" and "pairwise"
     classifier_method = "svm"  #  Can switch between "svm", "logistic", "tree", "forest", "boosting"
     method = "wilcoxon"  #  Can switch between "t-test", "logreg", "wilcoxon"
@@ -116,4 +120,4 @@ if __name__ == "__main__":
         classifier_method="svm"     # logistic, tree, forest, boosting
     )
     
-    save_results(results, marker_method, comparison_mode, method, selected_dataset, output_dir="/home/nisma/new_yomix/yomix/project/output/PBMC") #add directory where you want to save 
+    # save_results(results, marker_method, comparison_mode, method, selected_dataset, output_dir="/home/nisma/new_yomix/yomix/project/output/PBMC") #add directory where you want to save 
