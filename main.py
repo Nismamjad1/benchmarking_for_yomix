@@ -46,30 +46,23 @@ def main(
     else:
         benchmarks = benchmark_problems
 
-    for cancer_a, cancer_b in benchmarks:
-        if cancer_a == "N_Regional_Lymph_Node":
-            print(f"Skipping {cancer_a} as it is N_Regional_Lymph_Node")
-            continue  # Skip to the next iteration
-        print(f"\n Comparing: {cancer_a} vs {cancer_b}")
+    for label_a, label_b in benchmarks:
+        print(f"\n Comparing: {label_a} vs {label_b}")
 
         # Prepare labels clearly
-        if cancer_b == "rest":
-            adata.obs["binary_labels"] = np.where(adata.obs["label"] == cancer_a, cancer_a, "rest")
-            groupby = "binary_labels"
-            groups = [cancer_a]
+        if label_b == "rest":
+            adata.obs["binary_labels"] = np.where(adata.obs["label"] == label_a, label_a, "rest")
+            groups = [label_a]
             reference = "rest"
         else:
-            adata.obs['binary_labels'] = adata.obs['label'].replace({cancer_a: 'Cluster1', cancer_b: 'Cluster2'})
-            adata.obs['binary_labels'] = adata.obs['label'].replace({cancer_a: 'Cluster1', cancer_b: 'Cluster2'})
-            groupby = "binary_labels"
+            adata.obs['binary_labels'] = adata.obs['label'].replace({label_a: 'Cluster1', label_b: 'Cluster2'})
             groups = ["Cluster1"]
             reference = "Cluster2"
 
         # Run chosen gene-ranking method clearly
         if marker_method == "cosg":
-            marker_genes_df = run_cosg(adata, signature_sizes, groupby=groupby)
-            marker_genes_df = run_cosg(adata, signature_sizes, groupby=groupby)
-            key = f"{cancer_a}_vs_Rest"
+            marker_genes_df = run_cosg(adata, signature_sizes, groupby="binary_labels")
+            key = f"{label_a}_vs_Rest"
             if key in marker_genes_df:
                 ranked_genes[key] = marker_genes_df[key]
             else:
@@ -77,9 +70,8 @@ def main(
 
         elif marker_method=="scanpy":  # scanpy method
             method="wilcoxon"  # Can switch between "t-test", "logreg", "wilcoxon"
-            print(f"Calling run_benchmark with groups={groups}, reference={reference}, groupby={groupby}")
-            ranked_genes.update( run_benchmark(adata, groups, signature_sizes, comparison_mode, reference, groupby, cancer_a, cancer_b, method=method,  classifier="svm"))
-            ranked_genes.update( run_benchmark(adata, groups, signature_sizes, comparison_mode, reference, groupby, cancer_a, cancer_b, method=method,  classifier="svm"))
+            print(f"Calling run_benchmark with groups={groups}, reference={reference}, groupby=binary_labels")
+            ranked_genes.update( run_benchmark(adata, groups, signature_sizes, comparison_mode, reference, "binary_labels", label_a, label_b, method=method,  classifier="svm"))
             print("\nFinal Benchmark Results:")
             print(ranked_genes)
     return ranked_genes
@@ -93,15 +85,15 @@ if __name__ == "__main__":
         
     args = parser.parse_args()
 
-    argument = args.example
+    argument = args.file
 
     if argument:
-        filearg = Path(__file__).parent / "data" / "pbmc.h5ad"
-    else:
         assert (
             args.file is not None
         ), "yomix: error: the following arguments are required: file"
         filearg = Path(args.file)
+    else:
+        filearg = Path(__file__).parent / "data" / "pbmc.h5ad"
 
     xd = sc.read_h5ad(filearg.absolute())
     #xd = sc.read_h5ad("/home/nisma/new_yomix/yomix/xd_tcga_labels_umap.h5ad")
@@ -112,8 +104,9 @@ if __name__ == "__main__":
 
     results=main(
         xd,
+        marker_method="scanpy",
         comparison_mode=comparison_mode,
         classifier_method="svm"     # logistic, tree, forest, boosting
     )
 
-    save_results(results, comparison_mode, output_dir="results") #add directory where you want to save 
+    # save_results(results, comparison_mode, output_dir="results") #add directory where you want to save 
