@@ -19,8 +19,8 @@ signature_sizes = [1] #we change signatutre sizes to [1,3,10,20]
 
 
 benchmark_problems = [
-    ("T_BRCA", "T_BLCA"),
-    ("T_SKCM", "T_UVM"),
+    ("CD8 T", "B"), #("T_BRCA", "T_BLCA")
+    # ("T_SKCM", "T_UVM"),
     
    
 ]
@@ -49,15 +49,15 @@ def main(
     for label_a, label_b in benchmarks:
         print(f"\n Comparing: {label_a} vs {label_b}")
 
-        # Prepare labels clearly
-        if label_b == "rest":
-            adata.obs["binary_labels"] = np.where(adata.obs["label"] == label_a, label_a, "rest")
-            groups = [label_a]
-            reference = "rest"
-        else:
-            adata.obs['binary_labels'] = adata.obs['label'].replace({label_a: 'Cluster1', label_b: 'Cluster2'})
-            groups = ["Cluster1"]
-            reference = "Cluster2"
+        # # Prepare labels clearly
+        # if label_b == "rest":
+        #     adata.obs["binary_labels"] = np.where(adata.obs["label"] == label_a, label_a, "rest")
+        #     groups = [label_a]
+        #     reference = "rest"
+        # else:
+        #     adata.obs['binary_labels'] = adata.obs['label'].replace({label_a: 'Cluster1', label_b: 'Cluster2'})
+        #     groups = ["Cluster1"]
+        #     reference = "Cluster2"
 
         # Run chosen gene-ranking method clearly
         if marker_method == "cosg":
@@ -70,8 +70,8 @@ def main(
 
         elif marker_method=="scanpy":  # scanpy method
             method="wilcoxon"  # Can switch between "t-test", "logreg", "wilcoxon"
-            print(f"Calling run_benchmark with groups={groups}, reference={reference}, groupby=binary_labels")
-            ranked_genes.update( run_benchmark(adata, groups, signature_sizes, comparison_mode, reference, "binary_labels", label_a, label_b, method=method,  classifier="svm"))
+            print(f"Calling run_benchmark with groups={label_a}, reference={label_b}, groupby=binary_labels")
+            ranked_genes.update( run_benchmark(adata, signature_sizes, comparison_mode, "label", label_a, label_b, method=method,  classifier="svm"))
             print("\nFinal Benchmark Results:")
             print(ranked_genes)
     return ranked_genes
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     xd = sc.read_h5ad(filearg.absolute())
     #xd = sc.read_h5ad("/home/nisma/new_yomix/yomix/xd_tcga_labels_umap.h5ad")
 
-    comparison_mode = "one-vs-rest"  #  Can switch between "one-vs-rest" and "pairwise"
+    comparison_mode = "ont"  #  Can switch between "one-vs-rest" and "pairwise"
     classifier_method = "svm"  #  Can switch between "svm", "logistic", "tree", "forest", "boosting"
     # method = "wilcoxon"  #  Can switch between "t-test", "logreg", "wilcoxon"
 

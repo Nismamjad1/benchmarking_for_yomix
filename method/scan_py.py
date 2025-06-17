@@ -19,7 +19,7 @@ benchmark_problems = [
 
 num_runs = 10
 
-def run_benchmark(adata, groups, signature_sizes , comparison_mode, reference, groupby, cancer_a, cancer_b, method,  classifier="svm"):
+def run_benchmark(adata, signature_sizes , comparison_mode, groupby, label_a, label_b, method,  classifier="svm"):
     
     results = {}
     
@@ -32,25 +32,25 @@ def run_benchmark(adata, groups, signature_sizes , comparison_mode, reference, g
     '''
     if len(valid_groups) < 2:
         pdb.set_trace()
-        print(f"Skipping {cancer_a} vs {cancer_b}: Not enough samples.")
+        print(f"Skipping {label_a} vs {label_b}: Not enough samples.")
         return'
     '''
     # Differential expression analysis clearly
     start_time = time.time()
-    sc.tl.rank_genes_groups(adata, groupby=groupby, groups=groups, reference=reference, method=method)
+    sc.tl.rank_genes_groups(adata, groupby=groupby, groups=[label_a], reference=label_b, method=method)
     end_time = time.time()
     de_time_taken = end_time - start_time
-    print(f" Time taken for ranking genes ({cancer_a} vs {cancer_b}): {de_time_taken:.2f} seconds")
+    print(f" Time taken for ranking genes ({label_a} vs {label_b}): {de_time_taken:.2f} seconds")
 
     # Access ranked genes
-    ranked_genes = adata.uns['rank_genes_groups']['names'][groups[0]]
+    ranked_genes = adata.uns['rank_genes_groups']['names'][label_a]
 
-    results[f"{cancer_a}_vs_{cancer_b}"] = {"DE_Time_Taken": de_time_taken}
+    results[f"{label_a}_vs_{label_b}"] = {"DE_Time_Taken": de_time_taken}
 
     # Access clearly ranked genes
-    ranked_genes = adata.uns['rank_genes_groups']['names'][groups[0]]
+    ranked_genes = adata.uns['rank_genes_groups']['names'][label_a]
 
-    results[f"{cancer_a}_vs_{cancer_b}"] = {}
+    results[f"{label_a}_vs_{label_b}"] = {}
 
     for size in signature_sizes:
         top_genes = ranked_genes[:size]
@@ -62,12 +62,11 @@ def run_benchmark(adata, groups, signature_sizes , comparison_mode, reference, g
         
 
         for run in range(10):
-            if cancer_b == "rest":
-                idx_A = adata.obs.index[adata.obs[groupby] == cancer_a]
-                idx_B = adata.obs.index[adata.obs[groupby] != cancer_a]
+            idx_A = adata.obs.index[adata.obs[groupby] == label_a]
+            if label_b == "rest":
+                idx_B = adata.obs.index[adata.obs[groupby] != label_a]
             else:
-                idx_A = adata.obs.index[adata.obs[groupby] == "Cluster1"]
-                idx_B = adata.obs.index[adata.obs[groupby] == "Cluster2"]
+                idx_B = adata.obs.index[adata.obs[groupby] == label_b]
 
             # Extract clearly expression data
             subset_A = adata[idx_A, top_genes].X.toarray() if hasattr(adata[idx_A, top_genes].X, "toarray") else adata[idx_A, top_genes].X
@@ -118,20 +117,20 @@ def run_benchmark(adata, groups, signature_sizes , comparison_mode, reference, g
         std_mcc = np.std(mcc_scores)
 
         print(f"Signature size: {size}, Mean MCC (over {len(mcc_scores)} runs): {mean_mcc:.4f}")
-        results[f"{cancer_a}_vs_{cancer_b}"]["DE_Time_Taken"] = de_time_taken
+        results[f"{label_a}_vs_{label_b}"]["DE_Time_Taken"] = de_time_taken
         
-        results[f"{cancer_a}_vs_{cancer_b}"][f"{size}_features_mcc"] = mean_mcc
-        results[f"{cancer_a}_vs_{cancer_b}"][f"{size}_features_mcc_std"] = std_mcc
+        results[f"{label_a}_vs_{label_b}"][f"{size}_features_mcc"] = mean_mcc
+        results[f"{label_a}_vs_{label_b}"][f"{size}_features_mcc_std"] = std_mcc
         
         
         
-        results[f"{cancer_a}_vs_{cancer_b}"][f"{size}_features_precision"] = mean_precision
-        results[f"{cancer_a}_vs_{cancer_b}"][f"{size}_features_precision_std"] = std_precision
+        results[f"{label_a}_vs_{label_b}"][f"{size}_features_precision"] = mean_precision
+        results[f"{label_a}_vs_{label_b}"][f"{size}_features_precision_std"] = std_precision
 
-        results[f"{cancer_a}_vs_{cancer_b}"][f"{size}_features_recall"] = mean_recall
-        results[f"{cancer_a}_vs_{cancer_b}"][f"{size}_features_recall_std"] = std_recall
+        results[f"{label_a}_vs_{label_b}"][f"{size}_features_recall"] = mean_recall
+        results[f"{label_a}_vs_{label_b}"][f"{size}_features_recall_std"] = std_recall
 
-        results[f"{cancer_a}_vs_{cancer_b}"][f"{size}_features_f1"] = mean_f1
-        results[f"{cancer_a}_vs_{cancer_b}"][f"{size}_features_f1_std"] = std_f1   
+        results[f"{label_a}_vs_{label_b}"][f"{size}_features_f1"] = mean_f1
+        results[f"{label_a}_vs_{label_b}"][f"{size}_features_f1_std"] = std_f1   
 
     return results
