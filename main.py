@@ -61,7 +61,7 @@ def main(
 
         # Run chosen gene-ranking method clearly
         if marker_method == "cosg":
-            marker_genes_df = run_cosg(adata, signature_sizes, groupby="binary_labels")
+            marker_genes_df = run_cosg(adata, signature_sizes, label_a, groupby="label")
             key = f"{label_a}_vs_Rest"
             if key in marker_genes_df:
                 ranked_genes[key] = marker_genes_df[key]
@@ -71,7 +71,7 @@ def main(
         elif marker_method=="scanpy":  # scanpy method
             method="wilcoxon"  # Can switch between "t-test", "logreg", "wilcoxon"
             print(f"Calling run_benchmark with groups={label_a}, reference={label_b}, groupby=binary_labels")
-            ranked_genes.update( run_benchmark(adata, signature_sizes, comparison_mode, "label", label_a, label_b, method=method,  classifier="svm"))
+            ranked_genes.update( run_benchmark(adata, signature_sizes, "label", label_a, label_b, method=method,  classifier="svm"))
             print("\nFinal Benchmark Results:")
             print(ranked_genes)
     return ranked_genes
@@ -98,13 +98,13 @@ if __name__ == "__main__":
     xd = sc.read_h5ad(filearg.absolute())
     #xd = sc.read_h5ad("/home/nisma/new_yomix/yomix/xd_tcga_labels_umap.h5ad")
 
-    comparison_mode = "ont"  #  Can switch between "one-vs-rest" and "pairwise"
+    comparison_mode = "one-vs-rest"  #  Can switch between "one-vs-rest" and "pairwise"
     classifier_method = "svm"  #  Can switch between "svm", "logistic", "tree", "forest", "boosting"
     # method = "wilcoxon"  #  Can switch between "t-test", "logreg", "wilcoxon"
 
     results=main(
         xd,
-        marker_method="scanpy",
+        marker_method="cosg",
         comparison_mode=comparison_mode,
         classifier_method="svm"     # logistic, tree, forest, boosting
     )

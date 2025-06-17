@@ -8,7 +8,7 @@ import time
 from sklearn.metrics import precision_score, recall_score, f1_score
 
 
-def run_cosg(adata, signature_sizes, groupby="labels"):
+def run_cosg(adata, signature_sizes, label_a, groupby="labels"):
     """
     Runs COSG analysis on the AnnData object (adata), retrieves top marker genes per cluster,
     and returns benchmarking metrics (MCC, Precision, Recall, F1) for selected genes.
@@ -21,6 +21,7 @@ def run_cosg(adata, signature_sizes, groupby="labels"):
     Returns:
     - Dictionary with structure matching scanpy, e.g., {"T_BRCA_vs_Rest": {...}, ...}
     """
+    adata.obs["binary_labels"] = np.where(adata.obs["label"] == label_a, label_a, "rest")
     start_time = time.time()
 
     cosg.cosg(
@@ -31,7 +32,7 @@ def run_cosg(adata, signature_sizes, groupby="labels"):
         expressed_pct=0.05,
         remove_lowly_expressed=True,
         n_genes_user=20, # no of genes u want to see
-        groupby=groupby
+        groupby="binary_labels"
     )
 
     end_time = time.time()

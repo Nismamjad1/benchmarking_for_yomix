@@ -19,7 +19,7 @@ benchmark_problems = [
 
 num_runs = 10
 
-def run_benchmark(adata, signature_sizes , comparison_mode, groupby, label_a, label_b, method,  classifier="svm"):
+def run_benchmark(adata, signature_sizes, groupby, label_a, label_b, method,  classifier="svm"):
     
     results = {}
     
@@ -60,7 +60,6 @@ def run_benchmark(adata, signature_sizes , comparison_mode, groupby, label_a, la
         recall_scores=[]
         f1_scores=[]
         
-
         for run in range(10):
             idx_A = adata.obs.index[adata.obs[groupby] == label_a]
             if label_b == "rest":
