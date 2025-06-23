@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from yomix_signature import compute_signature
-import argparse
 from scipy.sparse import issparse
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import matthews_corrcoef
@@ -183,19 +182,9 @@ def main(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Yomix benchmark")
-    parser.add_argument(
-        "file", type=str, nargs="?", default=None, help="the .ha5d file to open"
-    )
-    args = parser.parse_args()
-    argument = args.file
-    if argument:
-        assert (
-            args.file is not None
-        ), "yomix: error: the following arguments are required: file"
-        filearg = Path(args.file)
-    else:
-        filearg = Path(__file__).parent / "data" / "pbmc.h5ad"
+
+    filearg = Path(__file__).parent / "data" / "pbmc.h5ad"
+    label_column = "label"
     xd = sc.read_h5ad(filearg.absolute())
 
     def _to_dense(x):
@@ -227,7 +216,7 @@ if __name__ == "__main__":
         xd,
         comparison_mode=comparison_mode,
         output_filename="test_pbmc",
-        label_column="label",
+        label_column=label_column,
         classifier_method="svm",
         signatures_size=[1, 10, 20],
         nb_clf_runs=3,
