@@ -71,8 +71,8 @@ def main(
     runtime = {}
     results = []
     ranked_genes = {}
-
     ranked_genes = {}
+
     if comparison_mode == "one-vs-rest":
         labels = xd.obs[label_column].unique()
         # define rest here what is insdie rest
@@ -86,19 +86,16 @@ def main(
         runtime[signature_key] = {}
         ranked_genes[signature_key] = {}
         print(f"\n Comparing: {label_a} vs {label_b}")
-
         # Prepare labels clearly
         if label_b == "rest":
             xd.obs["binary_labels"] = np.where(
                 xd.obs[label_column] == label_a, label_a, "rest"
             )
-
         else:
             xd.obs["binary_labels"] = xd.obs[label_column].replace(
                 {label_a: label_a, label_b: label_b}
             )
         groupby = "binary_labels"
-
         start_time = time.time()
         cosg.cosg(
             xd,
@@ -114,8 +111,8 @@ def main(
         ranked_genes[signature_key]["cosg"] = pd.DataFrame(
             xd.uns["cosg"]["names"], columns=xd.uns["cosg"]["names"].dtype.names
         )[label_a].values
-
         methods_scanpy = ["wilcoxon", "t-test"]
+
         for method_sc in methods_scanpy:
             start_time = time.time()
             sc.tl.rank_genes_groups(
@@ -133,26 +130,22 @@ def main(
         xd.obs["id"] = [i for i in range(xd.obs.shape[0])]
         indices_label = xd[xd.obs[label_column] == label_a, :].obs["id"].to_list()
         start_time = time.time()
-        genes, mcc, _ = compute_signature(
+        genes, _, _ = compute_signature(
             adata=xd,
             means=xd.var["mean_values"],
             stds=xd.var["standard_deviations"],
             obs_indices_A=indices_label,
         )
-        print(mcc)
         runtime[signature_key]["yomix"] = time.time() - start_time
-        print(genes, xd.var.iloc[genes].index.tolist())
         ranked_genes[signature_key]["yomix"] = xd.var.iloc[genes].index.tolist()
 
         for method in all_methods:
             for size in signatures_size:
-
                 selected_genes = ranked_genes[signature_key][method][:size]
                 X_subset = xd[:, selected_genes].X
                 X_subset = (
                     X_subset.toarray() if hasattr(X_subset, "toarray") else X_subset
                 )
-
                 y_binary = np.where(xd.obs.binary_labels == label_a, 1, 0)
 
                 for run in range(nb_clf_runs):
@@ -163,7 +156,6 @@ def main(
                         stratify=y_binary,
                         random_state=run,
                     )
-
                     clf = SVC(
                         kernel="linear", class_weight="balanced", random_state=run
                     )
@@ -183,24 +175,20 @@ def main(
                             "model": "svm",
                         }
                     )
-
+    runtime_df = pd.DataFrame(runtime)
+    runtime_df.to_csv(f"result/{output_filename}_runtime.csv")
     res_df = pd.DataFrame(results)
     res_df.to_csv(f"result/{output_filename}.csv")
-
     return ranked_genes
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Yomix benchmark")
-
     parser.add_argument(
         "file", type=str, nargs="?", default=None, help="the .ha5d file to open"
     )
-
     args = parser.parse_args()
-
     argument = args.file
-
     if argument:
         assert (
             args.file is not None
@@ -208,7 +196,6 @@ if __name__ == "__main__":
         filearg = Path(args.file)
     else:
         filearg = Path(__file__).parent / "data" / "pbmc.h5ad"
-
     xd = sc.read_h5ad(filearg.absolute())
 
     def _to_dense(x):
