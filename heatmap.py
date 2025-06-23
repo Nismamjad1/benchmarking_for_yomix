@@ -3,16 +3,16 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-pbmc = pd.read_csv("result/test_pbmc.csv", index_col=0)
-test = (
-    pbmc[pbmc["nb_genes"] == 10]
+df = pd.read_csv("result/test_pbmc.csv", index_col=0)
+df = (
+    df[df["nb_genes"] == 10]
     .groupby(["method", "label_vs_rest"], as_index=False)
     .mean(numeric_only=True)
 )
-test = test.pivot_table(index="label_vs_rest", columns="method", values="mcc")
+df = df.pivot_table(index="label_vs_rest", columns="method", values="mcc")
 
 sns.heatmap(
-    test,
+    df,
     annot=True,
     fmt=".2f",
     cmap="coolwarm",
