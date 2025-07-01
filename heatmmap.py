@@ -4,10 +4,10 @@ import seaborn as sns
 
 
 # Load the CSVs
-scanpy_df = pd.read_csv("/output/TCGA/benchmark_mcc_scores_TCGA_scanpy_wilcoxon_one-vs-rest.csv")
-cosg_df = pd.read_csv("/output/TCGA/benchmark/benchmarking_for_yomix/output/TCGA/benchmark_mcc_scores_TCGA_cosg.csv")
-yomix_df = pd.read_csv("/output/TCGA/benchmarking_for_yomix/output/TCGA/yomix-Sheet1.csv")
-scan_py_2 = pd.read_csv("/output/TCGA/benchmarking_for_yomix/output/TCGA/benchmark_mcc_scores_TCGA_scanpy_t-test_one-vs-rest.csv")
+scanpy_df = pd.read_csv("/home/nisma/benchmark/benchmarking_for_yomix/output/TCGA/benchmark_mcc_scores_TCGA_scanpy_wilcoxon_one-vs-rest.csv")
+cosg_df = pd.read_csv("/home/nisma/benchmark/benchmarking_for_yomix/output/TCGA/benchmark_mcc_scores_TCGA_cosg.csv")
+yomix_df = pd.read_csv("/home/nisma/benchmark/benchmarking_for_yomix/output/TCGA/yomix-Sheet1.csv")
+scan_py_2 = pd.read_csv("/home/nisma/benchmark/benchmarking_for_yomix/output/TCGA/benchmark_mcc_scores_TCGA_scanpy_t-test_one-vs-rest.csv")
 
 # Add method labels
 scanpy_df["Method"] = "Scanpy_wilcoxon"
@@ -22,21 +22,21 @@ for df in [scanpy_df, cosg_df, yomix_df, scan_py_2]:
 # Keep only necessary columns: Benchmark, Method, and 20_features_mcc
 dfs = []
 for df in [scanpy_df, cosg_df, yomix_df, scan_py_2]:
-    temp_df = df[["Benchmark", "Method", "1_features_mcc"]].copy()
-    temp_df.rename(columns={"1_features_mcc": "MCC_Score"}, inplace=True)
+    temp_df = df[["Benchmark", "Method", "20_features_mcc"]].copy()
+    temp_df.rename(columns={"20_features_mcc": "mcc_Score"}, inplace=True)
     dfs.append(temp_df)
 
 # Combine
 mcc_df = pd.concat(dfs)
 
 # Pivot for heatmap
-heatmap_df = mcc_df.pivot(index="Benchmark", columns="Method", values="MCC_Score")
+heatmap_df = mcc_df.pivot(index="Benchmark", columns="Method", values="mcc_Score")
 heatmap_df = heatmap_df.fillna(0)  # optional: fill NaNs with 0
 
 # Plot
 plt.figure(figsize=(14, 24))
 sns.heatmap(heatmap_df, annot=True, fmt=".2f", cmap="coolwarm", linewidths=.5, linecolor='black', annot_kws={"size": 5})
-plt.title("MCC Score Heatmap (1 Features Only)")
+plt.title("mcc score using TCGA (20 Features)")
 plt.xlabel("Method")
 plt.ylabel("Benchmark")
 plt.xticks(rotation=45, fontsize=10)

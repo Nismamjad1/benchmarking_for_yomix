@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+<<<<<<< HEAD
 # Load CSVs !!!!!!!! Absolute paths, doesn't work on other people's computer
 # scanpy_df = pd.read_csv("/home/nisma/new_yomix/yomix/project/output/benchmark_mcc_scores_TCGA_scanpy_wilcoxon_one-vs-rest.csv")
 # cosg_df = pd.read_csv("/home/nisma/new_yomix/yomix/project/output/benchmark_mcc_scores_TCGA_cosg.csv")
@@ -13,6 +14,14 @@ scanpy_df = pd.read_csv("output/TCGA/benchmark_mcc_scores_TCGA_scanpy_wilcoxon_o
 cosg_df = pd.read_csv("output/TCGA/benchmark_mcc_scores_TCGA_cosg.csv")
 yomix_df = pd.read_csv("output/TCGA/yomix-Sheet1.csv")
 scan_py_2= pd.read_csv("output/TCGA/benchmark_mcc_scores_TCGA_scanpy_t-test_one-vs-rest.csv")
+=======
+
+# Load the CSVs
+scanpy_df = pd.read_csv("/home/nisma/benchmark/benchmarking_for_yomix/output/TCGA/benchmark_mcc_scores_TCGA_scanpy_wilcoxon_one-vs-rest.csv")
+cosg_df = pd.read_csv("/home/nisma/benchmark/benchmarking_for_yomix/output/TCGA/benchmark_mcc_scores_TCGA_cosg.csv")
+yomix_df = pd.read_csv("/home/nisma/benchmark/benchmarking_for_yomix/output/TCGA/yomix-Sheet1.csv")
+scan_py_2 = pd.read_csv("/home/nisma/benchmark/benchmarking_for_yomix/output/TCGA/benchmark_mcc_scores_TCGA_scanpy_t-test_one-vs-rest.csv")
+>>>>>>> 512b67e (add things)
 
 
 # Add method label
@@ -24,8 +33,12 @@ scan_py_2["Method"]="Scanpy_t-test"
 # Combine time columns into a single DataFrame
 time_df = pd.concat([
     scanpy_df[["Benchmark", "DE_Time_Taken", "Method"]],
+<<<<<<< HEAD
     # cosg_df[["Benchmark", "DE_Time_Taken", "Method"]], !!!! DE_Time_Taken column doesn't exist
     cosg_df[["Benchmark", "DE_Time_Taken", "Method"]],
+=======
+    cosg_df[["Benchmark", "Time_Taken", "Method"]],
+>>>>>>> 512b67e (add things)
     yomix_df[["Benchmark", "DE_Time_Taken", "Method"]],
     scan_py_2[["Benchmark", "DE_Time_Taken", "Method"]]
 ])

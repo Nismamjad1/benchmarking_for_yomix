@@ -46,6 +46,22 @@ def run_cosg(adata, signature_sizes, label_a, groupby="labels"):
 
     print("marker_genes_df",marker_genes_df)
     
+    if 20 in signature_sizes:
+        top20_list = []
+        for label in marker_genes_df.columns:
+            if label.lower() == "rest":
+                continue
+            top_genes = marker_genes_df[label].iloc[:20].reset_index(drop=True)
+            top20_list.extend([(label, gene) for gene in top_genes])
+
+        top20_df = pd.DataFrame(top20_list, columns=["Label", "Gene"])
+        top20_df.to_csv("/home/nisma/top20_cosg_all_labels.csv", mode='a', header=False, index=False)
+
+    print("✅ Saved top 20 genes per label (excluding 'rest') for COSG")
+
+
+   
+    
     marker_gene_scores_df = pd.DataFrame(
         adata.uns['cosg']['scores'],
         columns=marker_genes_df.columns

@@ -10,6 +10,7 @@ from sklearn.ensemble import RandomForestClassifier, HistGradientBoostingClassif
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import classification_report, precision_score, recall_score, f1_score
 import pdb
+import pandas as pd
 # Define benchmark problems (pairwise)
 benchmark_problems = [
     ("T_BRCA", "T_BLCA"),
@@ -29,12 +30,16 @@ def run_benchmark(adata, signature_sizes, groupby, label_a, label_b, method,  cl
 
     # Filter out groups with fewer than 2 cells
     valid_groups = group_counts[group_counts >= 2].index.tolist()
+<<<<<<< HEAD
     '''
     if len(valid_groups) < 2:
         pdb.set_trace()
         print(f"Skipping {label_a} vs {label_b}: Not enough samples.")
         return'
     '''
+=======
+   
+>>>>>>> 512b67e (add things)
     # Differential expression analysis clearly
     start_time = time.time()
     sc.tl.rank_genes_groups(adata, groupby=groupby, groups=[label_a], reference=label_b, method=method)
@@ -45,7 +50,22 @@ def run_benchmark(adata, signature_sizes, groupby, label_a, label_b, method,  cl
     # Access ranked genes
     ranked_genes = adata.uns['rank_genes_groups']['names'][label_a]
 
+<<<<<<< HEAD
     results[f"{label_a}_vs_{label_b}"] = {"DE_Time_Taken": de_time_taken}
+=======
+    # Export top 20 genes from scanpy for the given label (e.g., Cluster1)
+    if 20 in signature_sizes:
+        label = groups[0]
+        top_genes = list(ranked_genes[:20])
+        top20_list = [(label, gene) for gene in top_genes]
+
+        # Append to CSV
+        top20_df = pd.DataFrame(top20_list, columns=["Label", "Gene"])
+        top20_df.to_csv("/home/nisma/top20_scanpy_all_labels.csv", mode='a', header=False, index=False)
+        print(f"Saved top 20 scanpy genes for {label}")
+
+    results[f"{cancer_a}_vs_{cancer_b}"] = {"DE_Time_Taken": de_time_taken}
+>>>>>>> 512b67e (add things)
 
     # Access clearly ranked genes
     ranked_genes = adata.uns['rank_genes_groups']['names'][label_a]
