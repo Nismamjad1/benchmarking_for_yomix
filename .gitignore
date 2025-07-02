@@ -23,6 +23,7 @@ __pycache__/
 # Output or intermediate files
 *.png
 *.pdf
+*.pickle
 
 # Ignore test or scratch scripts (optional)
 method/impors pd.py
@@ -33,4 +34,5 @@ method/import pandas as pd.py
 # Ignore the entire json/ folder
 json/
 
+data/
 method/scanpymine.py

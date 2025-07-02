@@ -1,16 +1,48 @@
-# You have to choose between the options:
-Run main.py to begin with and change among the following options. 
-1. scanpy (t-test , wilconxon)
-2.  cosg
-3.  one vs rest or pairwise
+# Code to reproduce Yomix paper figures
+## Run main.py on the file of your choice to run cosg, yomix's function to compute signature and scanpy(t-test, wilcoxon)
 
-# Then you will get csv files for each
-### you use the csv files to get the heatmaps for mcc scores, time taken by each method
-## i am attaching the Yomix CSV file in the output folder. You can compare the results by using Yomix 
-### save the csv and use 
-1. time_result.py for time graph 
-2. heatmap.py for the heatmaps for a different set of features
-3. figures.py will show us the MCC scores and the standard deviations
+In a python virtual environment, do:
 
+    python3 main.py [path_to_your_file]
 
-## Change the directory path according to your path
+The results will be stored in the 'result' folder as csv files : one for the perfomances of the classifiers on the signatures from the different methods, the other with the time it took to compute those methods (with the suffix _runtime)
+
+Now you can run the scripts to plot the figures by passing the file recently produced as argument
+To get the heatmap:
+
+	python3 heatmap.py [filepath]
+
+To get the performances comparison across labels:
+
+	python3 figures_std [filepath]
+
+To get run time comparison:
+
+	python3 time_result.py [filepath]
+	
+
+## List of contributors
+
+Nicolas Perrin-Gilbert
+
+Joshua Waterfall
+
+Pierre Fumeron
+
+Nisma Amjad
+
+Jason Z. Kim
+
+Erkan Narmanli
+
+Christopher R. Myers
+
+James P. Sethna
+
+Jérôme Contant
+
+Thomas Fuks
+
+Julien Vibert
+
+Silvia Tulli

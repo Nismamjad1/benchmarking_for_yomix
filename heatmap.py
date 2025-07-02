@@ -1,79 +1,54 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import argparse
+from pathlib import Path
 
 
-df = pd.read_csv("result/test_pbmc.csv", index_col=0)
-df = (
-    df[df["nb_genes"] == 10]
-    .groupby(["method", "label_vs_rest"], as_index=False)
-    .mean(numeric_only=True)
-)
-df = df.pivot_table(index="label_vs_rest", columns="method", values="mcc")
+def heatmap(file):
+    metrics = ["mcc", "precision", "f1_score", "recall"]
 
-sns.heatmap(
-    df,
-    annot=True,
-    fmt=".2f",
-    cmap="coolwarm",
-    linewidths=0.5,
-    linecolor="black",
-)
+    df = pd.read_csv(file, index_col=0)
+    nbr_of_features = 1
+    df = (
+        df[df["nb_genes"] == nbr_of_features]
+        .groupby(["method", "label_vs_rest"], as_index=False)
+        .mean(numeric_only=True)
+    )
+    for m in metrics:
 
-# # Load the CSVs
-# scanpy_df = pd.read_csv(
-#     "output/TCGA/benchmark_mcc_scores_TCGA_scanpy_wilcoxon_one-vs-rest.csv"
-# )
-# cosg_df = pd.read_csv(
-#     "output/TCGA/benchmark_mcc_scores_TCGA_cosg.csv"
-# )
-# yomix_df = pd.read_csv(
-#     "output/TCGA/yomix-Sheet1.csv"
-# )
-# scan_py_2 = pd.read_csv(
-#     "output/TCGA/benchmark_mcc_scores_TCGA_scanpy_t-test_one-vs-rest.csv"
-# )
+        df_tmp = df.pivot_table(index="label_vs_rest", columns="method", values=m)
 
-# # Add method labels
-# scanpy_df["Method"] = "Scanpy_wilcoxon"
-# cosg_df["Method"] = "COSG"
-# yomix_df["Method"] = "Yomix"
-# scan_py_2["Method"] = "Scanpy_t_test"
+        ax = sns.heatmap(
+            df_tmp,
+            # annot=True,
+            fmt=".2f",
+            cmap="coolwarm",
+            linewidths=0.5,
+            linecolor="black",
+            # cbar_kws={'label': 'MCC'}
+        )
 
-# # Normalize benchmark names
-# for df in [scanpy_df, cosg_df, yomix_df, scan_py_2]:
-#     df["Benchmark"] = df["Benchmark"].str.strip().str.lower()
+        ax.collections[0].colorbar.set_label(m)
 
-# # Keep only necessary columns: Benchmark, Method, and 20_features_mcc
-# dfs = []
-# for df in [scanpy_df, cosg_df, yomix_df, scan_py_2]:
-#     temp_df = df[["Benchmark", "Method", "1_features_mcc"]].copy()
-#     temp_df.rename(columns={"1_features_mcc": "MCC_Score"}, inplace=True)
-#     dfs.append(temp_df)
+        plt.title(f"{m} Score Heatmap ({nbr_of_features} Features Only)")
+        plt.xlabel("Method")
+        plt.ylabel("Class")
+        plt.xticks(rotation=45, fontsize=10)
+        plt.yticks(fontsize=8)
+        plt.tight_layout()
+        plt.show()
 
-# # Combine
-# mcc_df = pd.concat(dfs)
 
-# # Pivot for heatmap
-# print(mcc_df)
-# heatmap_df = mcc_df.pivot(index="Benchmark", columns="Method", values="MCC_Score")
-# heatmap_df = heatmap_df.fillna(0)  # optional: fill NaNs with 0
+if __name__ == "__main__":
 
-# # Plot
-# plt.figure(figsize=(14, 24))
-# sns.heatmap(
-#     heatmap_df,
-#     annot=True,
-#     fmt=".2f",
-#     cmap="coolwarm",
-#     linewidths=0.5,
-#     linecolor="black",
-#     annot_kws={"size": 5},
-# )
-plt.title("MCC Score Heatmap (1 Features Only)")
-plt.xlabel("Method")
-plt.ylabel("Benchmark")
-plt.xticks(rotation=45, fontsize=10)
-plt.yticks(fontsize=8)
-plt.tight_layout()
-plt.show()
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "file", type=str, nargs="?", default=None, help="the _runtime.csv file to open"
+    )
+
+    args = parser.parse_args()
+
+    filearg = Path(args.file)
+    heatmap(filearg.absolute())

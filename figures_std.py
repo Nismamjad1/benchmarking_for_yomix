@@ -1,3 +1,5 @@
+import argparse
+from pathlib import Path
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -82,22 +84,54 @@ import matplotlib.pyplot as plt
 #     plt.tight_layout()
 #     plt.show()
 
-res_df = pd.read_csv("result/test_pbmc.csv", index_col=0)
+
+# for label in res_df.label_vs_rest.unique():
+#     sns.set_theme(rc={"figure.figsize": (7, 6)})
+#     ax = sns.pointplot(
+#         data=res_df[res_df["label_vs_rest"] == label],
+#         x="nb_genes",
+#         y="mcc",
+#         hue="method",
+#         errorbar="sd",
+#     )
+#     ax.set_xlabel("Number of best features used as input")
+#     if label[-1] in ["T", "B", "c"]:
+#         suffix = "cells"
+#     else:
+#         suffix = ""
+#     ax.set_title(f"Svm Performance comparison on {label} {suffix}")
+#     plt.show()
 
 
-for label in res_df.label_vs_rest.unique():
+def performance_per_features(file):
+
+    res_df = pd.read_csv(file, index_col=0)
     sns.set_theme(rc={"figure.figsize": (7, 6)})
     ax = sns.pointplot(
-        data=res_df[res_df["label_vs_rest"] == label],
+        data=res_df,
         x="nb_genes",
         y="mcc",
         hue="method",
         errorbar="sd",
     )
     ax.set_xlabel("Number of best features used as input")
-    if label[-1] in ["T", "B", "c"]:
-        suffix = "cells"
-    else:
-        suffix = ""
-    ax.set_title(f"Svm Performance comparison on {label} {suffix}")
+    # if label[-1] in ["T", "B", "c"]:
+    #     suffix = "cells"
+    # else:
+    #     suffix = ""
+    ax.set_title("Svm Performance comparison on dna methylation")
     plt.show()
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "file", type=str, nargs="?", default=None, help="the _runtime.csv file to open"
+    )
+
+    args = parser.parse_args()
+
+    filearg = Path(args.file)
+    performance_per_features(filearg.absolute())
