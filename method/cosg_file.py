@@ -21,18 +21,20 @@ def run_cosg(adata, signature_sizes, label_a, groupby="labels"):
     Returns:
     - Dictionary with structure matching scanpy, e.g., {"T_BRCA_vs_Rest": {...}, ...}
     """
-    adata.obs["binary_labels"] = np.where(adata.obs["label"] == label_a, label_a, "rest")
+    adata.obs["binary_labels"] = np.where(
+        adata.obs["label"] == label_a, label_a, "rest"
+    )
     start_time = time.time()
 
     cosg.cosg(
         adata,
-        key_added='cosg',
+        key_added="cosg",
         use_raw=False,
         mu=100,
         expressed_pct=0.05,
         remove_lowly_expressed=True,
-        n_genes_user=20, # no of genes u want to see
-        groupby="binary_labels"
+        n_genes_user=20,  # no of genes u want to see
+        groupby="binary_labels",
     )
 
     end_time = time.time()
@@ -40,31 +42,13 @@ def run_cosg(adata, signature_sizes, label_a, groupby="labels"):
     print(f"COSG Analysis completed in {cosg_time:.2f} seconds")
 
     marker_genes_df = pd.DataFrame(
-        adata.uns['cosg']['names'],
-        columns=adata.uns['cosg']['names'].dtype.names
+        adata.uns["cosg"]["names"], columns=adata.uns["cosg"]["names"].dtype.names
     )
 
-    print("marker_genes_df",marker_genes_df)
-    
-    if 20 in signature_sizes:
-        top20_list = []
-        for label in marker_genes_df.columns:
-            if label.lower() == "rest":
-                continue
-            top_genes = marker_genes_df[label].iloc[:20].reset_index(drop=True)
-            top20_list.extend([(label, gene) for gene in top_genes])
+    print("marker_genes_df", marker_genes_df)
 
-        top20_df = pd.DataFrame(top20_list, columns=["Label", "Gene"])
-        top20_df.to_csv("/home/nisma/top20_cosg_all_labels.csv", mode='a', header=False, index=False)
-
-    print("✅ Saved top 20 genes per label (excluding 'rest') for COSG")
-
-
-   
-    
     marker_gene_scores_df = pd.DataFrame(
-        adata.uns['cosg']['scores'],
-        columns=marker_genes_df.columns
+        adata.uns["cosg"]["scores"], columns=marker_genes_df.columns
     )
 
     n_runs = 10
@@ -72,8 +56,10 @@ def run_cosg(adata, signature_sizes, label_a, groupby="labels"):
     labels_all = adata.obs[groupby].values
     final_results = {}
 
-   # Remove 'rest' column if present
-    marker_genes_df = marker_genes_df[[col for col in marker_genes_df.columns if col.lower() != "rest"]]
+    # Remove 'rest' column if present
+    marker_genes_df = marker_genes_df[
+        [col for col in marker_genes_df.columns if col.lower() != "rest"]
+    ]
 
     for size in signature_sizes:
         print(f"\n=== Signature Size: {size} ===")
@@ -85,10 +71,12 @@ def run_cosg(adata, signature_sizes, label_a, groupby="labels"):
             selected_genes = list(pd.unique(selected_genes))
             print("selected_genes", selected_genes)
 
-            gene_indices = [np.where(adata.var_names == gene)[0][0] for gene in selected_genes]
+            gene_indices = [
+                np.where(adata.var_names == gene)[0][0] for gene in selected_genes
+            ]
 
             X_subset = adata.X[:, gene_indices]
-            X_subset = X_subset.toarray() if hasattr(X_subset, 'toarray') else X_subset
+            X_subset = X_subset.toarray() if hasattr(X_subset, "toarray") else X_subset
 
             y_binary = np.where(labels_all == label, 1, 0)
 
@@ -103,24 +91,29 @@ def run_cosg(adata, signature_sizes, label_a, groupby="labels"):
 
             for run in range(n_runs):
                 X_train, X_test, y_train, y_test = train_test_split(
-                    X_subset, y_binary,
-                    test_size=0.3, stratify=y_binary, random_state=run
+                    X_subset,
+                    y_binary,
+                    test_size=0.3,
+                    stratify=y_binary,
+                    random_state=run,
                 )
 
-                clf = SVC(kernel='linear', class_weight='balanced', random_state=run)
+                clf = SVC(kernel="linear", class_weight="balanced", random_state=run)
                 clf.fit(X_train, y_train)
 
                 y_pred = clf.predict(X_test)
                 mcc_scores.append(matthews_corrcoef(y_test, y_pred))
-                precision_scores.append(precision_score(y_test, y_pred, average="binary"))
+                precision_scores.append(
+                    precision_score(y_test, y_pred, average="binary")
+                )
                 recall_scores.append(recall_score(y_test, y_pred, average="binary"))
                 f1_scores.append(f1_score(y_test, y_pred, average="binary"))
 
             mean_mcc = np.mean(mcc_scores)
-            print("mcc_scores",mcc_scores)
-            print("mean_mcc",mean_mcc)
+            print("mcc_scores", mcc_scores)
+            print("mean_mcc", mean_mcc)
             std_mcc = np.std(mcc_scores)
-            print("std_mcc",std_mcc)
+            print("std_mcc", std_mcc)
 
             mean_precision = np.mean(precision_scores)
             std_precision = np.std(precision_scores)
@@ -150,5 +143,3 @@ def run_cosg(adata, signature_sizes, label_a, groupby="labels"):
             final_results[key][f"{size}_features_f1_std"] = std_f1
 
     return final_results
-
-

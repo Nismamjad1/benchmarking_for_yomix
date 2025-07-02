@@ -8,67 +8,58 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier, HistGradientBoostingClassifier
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import classification_report, precision_score, recall_score, f1_score
+from sklearn.metrics import (
+    classification_report,
+    precision_score,
+    recall_score,
+    f1_score,
+)
 import pdb
-import pandas as pd
+
 # Define benchmark problems (pairwise)
 benchmark_problems = [
     ("T_BRCA", "T_BLCA"),
     ("T_SKCM", "T_UVM"),
-   
 ]
 
 num_runs = 10
 
-def run_benchmark(adata, signature_sizes, groupby, label_a, label_b, method,  classifier="svm"):
-    
+
+def run_benchmark(
+    adata, signature_sizes, groupby, label_a, label_b, method, classifier="svm"
+):
+
     results = {}
-    
-   
+
     group_counts = adata.obs[groupby].value_counts()
     print(group_counts)  # Check how many samples exist per group
 
     # Filter out groups with fewer than 2 cells
     valid_groups = group_counts[group_counts >= 2].index.tolist()
-<<<<<<< HEAD
-    '''
+    """
     if len(valid_groups) < 2:
         pdb.set_trace()
         print(f"Skipping {label_a} vs {label_b}: Not enough samples.")
         return'
-    '''
-=======
-   
->>>>>>> 512b67e (add things)
+    """
     # Differential expression analysis clearly
     start_time = time.time()
-    sc.tl.rank_genes_groups(adata, groupby=groupby, groups=[label_a], reference=label_b, method=method)
+    sc.tl.rank_genes_groups(
+        adata, groupby=groupby, groups=[label_a], reference=label_b, method=method
+    )
     end_time = time.time()
     de_time_taken = end_time - start_time
-    print(f" Time taken for ranking genes ({label_a} vs {label_b}): {de_time_taken:.2f} seconds")
+    print(
+        f" Time taken for ranking genes ({label_a} vs {label_b}): {de_time_taken:.2f} seconds"
+    )
 
     # Access ranked genes
-    ranked_genes = adata.uns['rank_genes_groups']['names'][label_a]
+    ranked_genes = adata.uns["rank_genes_groups"]["names"][label_a]
 
-<<<<<<< HEAD
     results[f"{label_a}_vs_{label_b}"] = {"DE_Time_Taken": de_time_taken}
-=======
-    # Export top 20 genes from scanpy for the given label (e.g., Cluster1)
-    if 20 in signature_sizes:
-        label = groups[0]
-        top_genes = list(ranked_genes[:20])
-        top20_list = [(label, gene) for gene in top_genes]
-
-        # Append to CSV
-        top20_df = pd.DataFrame(top20_list, columns=["Label", "Gene"])
-        top20_df.to_csv("/home/nisma/top20_scanpy_all_labels.csv", mode='a', header=False, index=False)
-        print(f"Saved top 20 scanpy genes for {label}")
-
-    results[f"{cancer_a}_vs_{cancer_b}"] = {"DE_Time_Taken": de_time_taken}
->>>>>>> 512b67e (add things)
 
     # Access clearly ranked genes
-    ranked_genes = adata.uns['rank_genes_groups']['names'][label_a]
+    ranked_genes = adata.uns["rank_genes_groups"]["names"][label_a]
 
     results[f"{label_a}_vs_{label_b}"] = {}
 
@@ -76,10 +67,10 @@ def run_benchmark(adata, signature_sizes, groupby, label_a, label_b, method,  cl
         top_genes = ranked_genes[:size]
 
         mcc_scores = []
-        precision_scores=[]
-        recall_scores=[]
-        f1_scores=[]
-        
+        precision_scores = []
+        recall_scores = []
+        f1_scores = []
+
         for run in range(10):
             idx_A = adata.obs.index[adata.obs[groupby] == label_a]
             if label_b == "rest":
@@ -88,19 +79,29 @@ def run_benchmark(adata, signature_sizes, groupby, label_a, label_b, method,  cl
                 idx_B = adata.obs.index[adata.obs[groupby] == label_b]
 
             # Extract clearly expression data
-            subset_A = adata[idx_A, top_genes].X.toarray() if hasattr(adata[idx_A, top_genes].X, "toarray") else adata[idx_A, top_genes].X
-            subset_B = adata[idx_B, top_genes].X.toarray() if hasattr(adata[idx_B, top_genes].X, "toarray") else adata[idx_B, top_genes].X
+            subset_A = (
+                adata[idx_A, top_genes].X.toarray()
+                if hasattr(adata[idx_A, top_genes].X, "toarray")
+                else adata[idx_A, top_genes].X
+            )
+            subset_B = (
+                adata[idx_B, top_genes].X.toarray()
+                if hasattr(adata[idx_B, top_genes].X, "toarray")
+                else adata[idx_B, top_genes].X
+            )
 
             # Combine clearly subsets and labels
             X = np.vstack((subset_A, subset_B))
             y = np.concatenate((np.ones(len(idx_A)), np.zeros(len(idx_B))))
 
             # Train-test split
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, stratify=y, random_state=np.random.randint(10000))
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=0.3, stratify=y, random_state=np.random.randint(10000)
+            )
 
             # Classifier clearly chosen
             if classifier == "logistic":
-                clf = LogisticRegression(class_weight='balanced', max_iter=1000)
+                clf = LogisticRegression(class_weight="balanced", max_iter=1000)
             elif classifier == "boosting":
                 clf = HistGradientBoostingClassifier()
             elif classifier == "forest":
@@ -108,7 +109,7 @@ def run_benchmark(adata, signature_sizes, groupby, label_a, label_b, method,  cl
             elif classifier == "tree":
                 clf = DecisionTreeClassifier()
             else:  # Default clearly SVM
-                clf = SVC(kernel='linear', class_weight='balanced')
+                clf = SVC(kernel="linear", class_weight="balanced")
 
             clf.fit(X_train, y_train)
 
@@ -124,7 +125,6 @@ def run_benchmark(adata, signature_sizes, groupby, label_a, label_b, method,  cl
             recall_scores.append(recall)
             f1_scores.append(f1)
 
-        
         mean_mcc = np.mean(mcc_scores)
         std_precision = np.std(precision_scores)
 
@@ -135,21 +135,25 @@ def run_benchmark(adata, signature_sizes, groupby, label_a, label_b, method,  cl
         mean_f1 = np.mean(f1_scores)
         std_mcc = np.std(mcc_scores)
 
-        print(f"Signature size: {size}, Mean MCC (over {len(mcc_scores)} runs): {mean_mcc:.4f}")
+        print(
+            f"Signature size: {size}, Mean MCC (over {len(mcc_scores)} runs): {mean_mcc:.4f}"
+        )
         results[f"{label_a}_vs_{label_b}"]["DE_Time_Taken"] = de_time_taken
-        
+
         results[f"{label_a}_vs_{label_b}"][f"{size}_features_mcc"] = mean_mcc
         results[f"{label_a}_vs_{label_b}"][f"{size}_features_mcc_std"] = std_mcc
-        
-        
-        
-        results[f"{label_a}_vs_{label_b}"][f"{size}_features_precision"] = mean_precision
-        results[f"{label_a}_vs_{label_b}"][f"{size}_features_precision_std"] = std_precision
+
+        results[f"{label_a}_vs_{label_b}"][
+            f"{size}_features_precision"
+        ] = mean_precision
+        results[f"{label_a}_vs_{label_b}"][
+            f"{size}_features_precision_std"
+        ] = std_precision
 
         results[f"{label_a}_vs_{label_b}"][f"{size}_features_recall"] = mean_recall
         results[f"{label_a}_vs_{label_b}"][f"{size}_features_recall_std"] = std_recall
 
         results[f"{label_a}_vs_{label_b}"][f"{size}_features_f1"] = mean_f1
-        results[f"{label_a}_vs_{label_b}"][f"{size}_features_f1_std"] = std_f1   
+        results[f"{label_a}_vs_{label_b}"][f"{size}_features_f1_std"] = std_f1
 
     return results
