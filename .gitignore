@@ -23,6 +23,7 @@ __pycache__/
 # Output or intermediate files
 *.png
 *.pdf
+*.pickle
 
 # Ignore test or scratch scripts (optional)
 method/impors pd.py

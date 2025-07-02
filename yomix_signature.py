@@ -3,8 +3,6 @@ import numpy as np
 
 
 # Yomix compute signature function from commit 0c7fce3fb39ba6cb2c6a9f71a234c2d1f421c205
-
-
 def wasserstein_distance(mu1, sigma1, mu2, sigma2):
     mean_diff = mu1 - mu2
     std_diff = sigma1 - sigma2
@@ -14,8 +12,7 @@ def wasserstein_distance(mu1, sigma1, mu2, sigma2):
 
 def compute_signature(adata, means, stds, obs_indices_A, obs_indices_B=None):
     # STEP 1: sort features using Wasserstein distances
-
-    a2 = adata.X[obs_indices_A, :]
+    a2 = adata[obs_indices_A, :].X
     mu2_array = a2.mean(axis=0)
     sigma2_array = a2.std(axis=0)
     if obs_indices_B is None:

@@ -1,3 +1,4 @@
+import argparse
 import scanpy as sc
 import numpy as np
 import pandas as pd
@@ -10,6 +11,7 @@ from sklearn.svm import SVC
 import time
 from sklearn.metrics import precision_score, recall_score, f1_score
 import cosg
+from tqdm import tqdm
 
 # Configurations  ("T_LUAD", "T_LUSC"),
 # ("T_STAD", "T_PAAD"),
@@ -26,11 +28,10 @@ benchmark_problems = [
 ]
 
 
-# Main benchmarking clearly defined
 def main(
     xd,
     comparison_mode,  # can switch to "one-vs-rest" vs "pairwise"
-    output_filename,  # name of outptu
+    output_filename,
     label_column,
     classifier_method="svm",
     nb_clf_runs=10,  # Number of runs for the classifier
@@ -65,11 +66,10 @@ def main(
     -------
     ranked_genes : dict
         Dictionary containing ranked gene lists for each method and comparison."""
-
+    xd.obs["id"] = [i for i in range(xd.obs.shape[0])]
     all_methods = ["yomix", "cosg", "scanpy_wilcoxon", "scanpy_t-test"]
     runtime = {}
     results = []
-    ranked_genes = {}
     ranked_genes = {}
 
     if comparison_mode == "one-vs-rest":
@@ -80,11 +80,11 @@ def main(
     else:
         benchmarks = benchmark_problems
 
-    for label_a, label_b in benchmarks:
+    for label_a, label_b in tqdm(benchmarks):
         signature_key = label_a + "_vs_" + label_b
         runtime[signature_key] = {}
         ranked_genes[signature_key] = {}
-        print(f"\n Comparing: {label_a} vs {label_b}")
+        # print(f"\n Comparing: {label_a} vs {label_b}")
         # Prepare labels clearly
         if label_b == "rest":
             xd.obs["binary_labels"] = np.where(
@@ -94,7 +94,6 @@ def main(
             xd.obs["binary_labels"] = xd.obs[label_column].replace(
                 {label_a: label_a, label_b: label_b}
             )
-        groupby = "binary_labels"
         start_time = time.time()
         cosg.cosg(
             xd,
@@ -104,7 +103,7 @@ def main(
             expressed_pct=0.05,
             remove_lowly_expressed=True,
             n_genes_user=20,
-            groupby=groupby,
+            groupby="binary_labels",
         )
         runtime[signature_key]["cosg"] = time.time() - start_time
         ranked_genes[signature_key]["cosg"] = pd.DataFrame(
@@ -116,7 +115,7 @@ def main(
             start_time = time.time()
             sc.tl.rank_genes_groups(
                 xd,
-                groupby=groupby,
+                groupby="binary_labels",
                 groups=[label_a],
                 reference=label_b,
                 method=method_sc,
@@ -126,7 +125,6 @@ def main(
                 "rank_genes_groups"
             ]["names"][label_a]
 
-        xd.obs["id"] = [i for i in range(xd.obs.shape[0])]
         indices_label = xd[xd.obs[label_column] == label_a, :].obs["id"].to_list()
         start_time = time.time()
         genes, _, _ = compute_signature(
@@ -169,7 +167,7 @@ def main(
                             "precision": precision_score(y_test, y_pred),
                             "f1_score": f1_score(y_test, y_pred),
                             "recall": recall_score(y_test, y_pred),
-                            "label_vs_rest": label_a,
+                            "label_vs_rest": signature_key,
                             "nb_genes": size,
                             "model": "svm",
                         }
@@ -178,13 +176,33 @@ def main(
     runtime_df.to_csv(f"result/{output_filename}_runtime.csv")
     res_df = pd.DataFrame(results)
     res_df.to_csv(f"result/{output_filename}.csv")
-    return ranked_genes
+    # with open("signatures.pickle", "wb") as f:
+    #     pickle.dump(ranked_genes, f)
+    return res_df, runtime, ranked_genes
 
 
 if __name__ == "__main__":
 
-    filearg = Path(__file__).parent / "data" / "pbmc.h5ad"
-    label_column = "label"
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "file", type=str, nargs="?", default=None, help="the .ha5d file to open"
+    )
+
+    # dataset = "tcga"
+    # if dataset == "pbmc":
+
+    #     filearg = Path(__file__).parent / "data" / "pbmc.h5ad"
+    #     label_column = "label"
+    # elif dataset == "meth":
+    #     filearg =  Path(__file__).parent / "data" / "sarc_ba.h5ad"
+    #     label_column = "labels"
+    # else:
+    #     filearg =  Path(__file__).parent / "data" / "tcga.h5ad"
+    #     label_column = "labels"
+
+    args = parser.parse_args()
+    filearg = Path(args.file)
     xd = sc.read_h5ad(filearg.absolute())
 
     def _to_dense(x):
@@ -204,9 +222,8 @@ if __name__ == "__main__":
     def var_standard_deviations(adata) -> np.ndarray:
         return np.squeeze(np.asarray(np.std(adata.X, axis=0)))
 
-    if "mean_values" not in xd.var:
-        xd.var["mean_values"] = var_mean_values(xd)
-        xd.var["standard_deviations"] = var_standard_deviations(xd)
+    xd.var["mean_values"] = var_mean_values(xd)
+    xd.var["standard_deviations"] = var_standard_deviations(xd)
 
     comparison_mode = "one-vs-rest"  # Can switch between "one-vs-rest" and "pairwise"
     classifier_method = (
@@ -215,10 +232,10 @@ if __name__ == "__main__":
     results = main(
         xd,
         comparison_mode=comparison_mode,
-        output_filename="test_pbmc",
-        label_column=label_column,
+        output_filename=args.file.split("/")[-1].split(".")[0],
+        label_column="labels",
         classifier_method="svm",
-        signatures_size=[1, 10, 20],
+        signatures_size=[i for i in range(1, 21)],
         nb_clf_runs=3,
     )
 
