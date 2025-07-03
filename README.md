@@ -5,6 +5,8 @@ In a python virtual environment, do:
 
     python3 main.py [path_to_your_file]
 
+where your file is an anndata object (h5ad format) with 'labels' in obs field
+
 The results will be stored in the 'result' folder as csv files : one for the perfomances of the classifiers on the signatures from the different methods, the other with the time it took to compute those methods (with the suffix _runtime)
 
 Now you can run the scripts to plot the figures by passing the file recently produced as argument
