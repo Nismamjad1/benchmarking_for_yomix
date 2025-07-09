@@ -21,7 +21,8 @@ def compare_time_per_label(file):
 
 
 def compare_time_per_method():
-    datasets = ["tcga", "meth", "test_pbmc"]
+    # TODO get all *_runtime.csv files from result folders instead of hardcoding paths
+    datasets = ["tcga", "meth", "pbmc"]
     dfs = []
     for dataset in datasets:
         df_tmp = pd.read_csv(f"result/{dataset}_runtime.csv", index_col=0)
@@ -32,16 +33,28 @@ def compare_time_per_method():
         dfs.append(df_tmp[["mean", "std", "dataset"]])
     df_runtime = pd.concat(dfs)
     df_runtime["method"] = df_runtime.index
-    sns.catplot(
-        x="dataset",  # x variable name
-        y="mean",  # y variable name
-        hue="method",  # group variable name
-        data=df_runtime,  # dataframe to plot
-        kind="bar",
-        # errorbar="std"
-    )
+
+    sns.barplot(data=df_runtime, x="dataset", y="mean", hue="method", errorbar=None)
+
+    a = 0
+    for i, row in df_runtime.iterrows():
+        # TODO change formula for errorbars to make it flexible
+        plt.errorbar(
+            x=a // 4 + (-0.3 + 0.2 * (a % 4)),
+            y=row["mean"],
+            yerr=row["std"],
+            fmt="none",
+            capsize=5,
+            color="black",
+        )
+        a += 1
+    plt.xlabel("Dataset")
+    plt.ylabel("Average runtime (s)")
     plt.title("Feature selection methods' average runtime across different datasets")
-    plt.ylabel("Time (s)")
+    plt.legend(title="Method")
+    plt.grid(axis="y", linestyle="--", alpha=0.7)
+
+    plt.savefig("foo.png")
     plt.show()
 
 
