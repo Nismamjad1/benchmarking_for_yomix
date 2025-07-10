@@ -50,5 +50,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    filearg = Path(args.file)
-    heatmap(filearg.absolute())
+    if args.file is None:
+        print("error : heatmap.py requires a file as argument")
+    else:
+        filearg = Path(args.file)
+        heatmap(filearg.absolute())

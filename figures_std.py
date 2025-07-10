@@ -132,6 +132,8 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-
-    filearg = Path(args.file)
-    performance_per_features(filearg.absolute())
+    if args.file is None:
+        print("error : figures_std.py requires a file as argument")
+    else:
+        filearg = Path(args.file)
+        performance_per_features(filearg.absolute())

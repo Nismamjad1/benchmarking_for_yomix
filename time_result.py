@@ -36,7 +36,6 @@ def compare_time_per_method():
         dfs.append(df_tmp[["mean", "std", "dataset"]])
     df_runtime = pd.concat(dfs)
     df_runtime["method"] = df_runtime.index
-    df_runtime = df_runtime[df_runtime["method"].isin(["cosg"])]
     datasets = df_runtime["dataset"].unique()
     methods = df_runtime["method"].unique()
     n_methods = len(methods)
@@ -75,6 +74,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.file is None:
+        print(
+            "WARNING : no file passed as parameter, "
+            'compute the plot on all "_runtime.csv" files in the result folder'
+        )
         compare_time_per_method()
     else:
         filearg = Path(args.file)
