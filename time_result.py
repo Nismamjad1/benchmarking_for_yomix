@@ -22,6 +22,9 @@ def compare_time_per_label(file):
 
 
 def compare_time_per_method():
+    """Create a grouped barplot with error bars using every
+    _runtime.csv files in result folder. Plot will be saved as
+    plots/time_comparison.png"""
 
     file_names = [
         fn for fn in os.listdir("result") if fn.split("_")[-1] == "runtime.csv"
