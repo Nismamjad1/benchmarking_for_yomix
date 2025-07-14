@@ -16,7 +16,7 @@ To get the heatmap:
 
 To get the performances comparison across labels:
 
-	python3 figures_std [filepath]
+	python3 figures_std.py [filepath]
 
 To get run time comparison:
 
