@@ -21,7 +21,7 @@ def compare_time_per_label(file):
 
 
 def compare_time_per_method():
-    datasets = ["tcga", "meth", "test_pbmc"]
+    datasets = ["citeseq", "lawlor", "tcga", "meth", "pbmc"]
     dfs = []
     for dataset in datasets:
         df_tmp = pd.read_csv(f"result/{dataset}_runtime.csv", index_col=0)
@@ -42,6 +42,7 @@ def compare_time_per_method():
     )
     plt.title("Feature selection methods' average runtime across different datasets")
     plt.ylabel("Time (s)")
+    plt.xlabel("Dataset", labelpad=15)
     plt.show()
 
 

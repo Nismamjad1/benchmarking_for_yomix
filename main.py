@@ -71,6 +71,7 @@ def main(
     runtime = {}
     results = []
     ranked_genes = {}
+    xd.obs[label_column] = xd.obs[label_column].astype(str)
 
     if comparison_mode == "one-vs-rest":
         labels = xd.obs[label_column].unique()
@@ -81,7 +82,7 @@ def main(
         benchmarks = benchmark_problems
 
     for label_a, label_b in tqdm(benchmarks):
-        signature_key = label_a + "_vs_" + label_b
+        signature_key = str(label_a) + "_vs_" + str(label_b)
         runtime[signature_key] = {}
         ranked_genes[signature_key] = {}
         # print(f"\n Comparing: {label_a} vs {label_b}")
@@ -90,11 +91,24 @@ def main(
             xd.obs["binary_labels"] = np.where(
                 xd.obs[label_column] == label_a, label_a, "rest"
             )
+            xd.obs["binary_labels"] = pd.Categorical(
+                xd.obs["binary_labels"], categories=[str(label_a), "rest"]
+            )
+
+
         else:
             xd.obs["binary_labels"] = xd.obs[label_column].replace(
                 {label_a: label_a, label_b: label_b}
             )
+            xd.obs["binary_labels"] = pd.Categorical(
+                xd.obs["binary_labels"], categories=[str(label_a), "rest"]
+            )
+
+
+
+    
         start_time = time.time()
+
         cosg.cosg(
             xd,
             key_added="cosg",
@@ -108,7 +122,7 @@ def main(
         runtime[signature_key]["cosg"] = time.time() - start_time
         ranked_genes[signature_key]["cosg"] = pd.DataFrame(
             xd.uns["cosg"]["names"], columns=xd.uns["cosg"]["names"].dtype.names
-        )[label_a].values
+        )[str(label_a)].values
         methods_scanpy = ["wilcoxon", "t-test"]
 
         for method_sc in methods_scanpy:
@@ -225,6 +239,8 @@ if __name__ == "__main__":
     xd.var["mean_values"] = var_mean_values(xd)
     xd.var["standard_deviations"] = var_standard_deviations(xd)
 
+    
+
     comparison_mode = "one-vs-rest"  # Can switch between "one-vs-rest" and "pairwise"
     classifier_method = (
         "svm"  # Can switch between "svm", "logistic", "tree", "forest", "boosting"
@@ -233,7 +249,7 @@ if __name__ == "__main__":
         xd,
         comparison_mode=comparison_mode,
         output_filename=args.file.split("/")[-1].split(".")[0],
-        label_column="labels",
+        label_column="label",
         classifier_method="svm",
         signatures_size=[i for i in range(1, 21)],
         nb_clf_runs=3,

@@ -39,6 +39,37 @@ def heatmap(file):
         plt.tight_layout()
         plt.show()
 
+def heatmap_average():
+
+    datasets=["citeseq","pbmc","lawlor","meth", "tcga"]
+    dfs = [
+        pd.read_csv(f"result/{dataset}.csv", index_col=0).query("nb_genes==20").assign(dataset=dataset)
+        for dataset in datasets
+    ]
+    
+    df_all = pd.concat(dfs, ignore_index=True)
+    df_avg = df_all.groupby(["dataset", "method"])[["mcc", "precision", "f1_score", "recall"]].mean().reset_index()
+
+    metrics = ["mcc", "precision", "f1_score", "recall"]
+    for metric in metrics:
+        df_pivot = df_avg.pivot(index="dataset", columns="method", values=metric)
+        plt.figure(figsize=(8, 4))
+        sns.heatmap(
+            df_pivot,
+            annot=True,
+            fmt=".2f",
+            cmap="coolwarm",
+            linewidths=0.5,
+            linecolor="black"
+        )
+        plt.title(f"Average {metric.lower()} per method across datasets for 20 features")
+        plt.xlabel("Method", labelpad=15)
+        plt.ylabel("Dataset", labelpad=15)
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.show()
+
+
 
 if __name__ == "__main__":
 
@@ -49,6 +80,8 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-
-    filearg = Path(args.file)
-    heatmap(filearg.absolute())
+    if args.file is None:
+        heatmap_average()
+    else:
+        filearg = Path(args.file)
+        heatmap(filearg.absolute())

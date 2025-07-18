@@ -119,7 +119,7 @@ def performance_per_features(file):
     #     suffix = "cells"
     # else:
     #     suffix = ""
-    ax.set_title("Svm Performance comparison on dna methylation")
+    ax.set_title("SVM Performance Comparison On TCGA")
     plt.show()
 
 
