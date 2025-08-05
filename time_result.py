@@ -33,12 +33,12 @@ def compare_time_per_method():
     df_runtime = pd.concat(dfs)
     df_runtime["method"] = df_runtime.index
     sns.catplot(
-        x="dataset",  # x variable name
-        y="mean",  # y variable name
-        hue="method",  # group variable name
-        data=df_runtime,  # dataframe to plot
+        x="dataset",  
+        y="mean",  
+        hue="method",  
+        data=df_runtime,  
         kind="bar",
-        # errorbar="std"
+        #errorbar=df_tmp["std"]
     )
     plt.title("Feature selection methods' average runtime across different datasets")
     plt.ylabel("Time (s)")

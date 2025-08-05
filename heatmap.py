@@ -53,8 +53,8 @@ def heatmap_average():
     metrics = ["mcc", "precision", "f1_score", "recall"]
     for metric in metrics:
         df_pivot = df_avg.pivot(index="dataset", columns="method", values=metric)
-        plt.figure(figsize=(8, 4))
-        sns.heatmap(
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax = sns.heatmap(
             df_pivot,
             annot=True,
             fmt=".2f",
@@ -62,11 +62,12 @@ def heatmap_average():
             linewidths=0.5,
             linecolor="black"
         )
-        plt.title(f"Average {metric.lower()} per method across datasets for 20 features")
-        plt.xlabel("Method", labelpad=15)
-        plt.ylabel("Dataset", labelpad=15)
-        plt.xticks(rotation=45)
-        plt.tight_layout()
+        ax.set_title(f"Average {metric.lower()} per method across datasets for 20 features")
+        ax.set_xlabel("Method", labelpad=15)
+        ax.set_ylabel("Dataset", labelpad=15)
+        ax.tick_params(axis='x', rotation=45)
+
+        fig.tight_layout()
         plt.show()
 
 

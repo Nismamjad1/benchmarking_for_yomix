@@ -6,6 +6,7 @@ from pathlib import Path
 import anndata as ad
 import scanpy as sc
 
+
 def cellnum_vs_time():
     datasets = ["citeseq", "pbmc", "lawlor"]
     cell_counts = {}
@@ -26,17 +27,17 @@ def cellnum_vs_time():
     df_runtime["cell_count"] = df_runtime["dataset"].map(cell_counts)
 
 
-    plt.figure(figsize=(8, 6))
+    fig, ax= plt.subplots(figsize=(8, 6))
     for method in df_runtime["method"].unique():
         subset = df_runtime[df_runtime["method"] == method].sort_values("cell_count")
         plt.plot(subset["cell_count"], subset["mean_time"], marker='o', label=method)
 
-    plt.title("Runtime vs Number of Cells per Method")
-    plt.xlabel("Number of Cells")
-    plt.ylabel("Average Runtime (seconds)")
-    plt.legend(title="Method")
-    plt.grid(True)
-    plt.tight_layout()
+    ax.set_title("Runtime vs Number of Cells per Method")
+    ax.set_xlabel("Number of Cells")
+    ax.set_ylabel("Average Runtime (seconds)")
+    ax.legend(title="Method")
+    ax.grid(True)
+    fig.tight_layout()
     plt.show()
 
 
