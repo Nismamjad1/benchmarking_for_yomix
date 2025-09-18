@@ -71,6 +71,7 @@ def main(
     runtime = {}
     results = []
     ranked_genes = {}
+    top_genes_table=[]
     xd.obs[label_column] = xd.obs[label_column].astype(str)
 
     if comparison_mode == "one-vs-rest":
@@ -123,6 +124,8 @@ def main(
         ranked_genes[signature_key]["cosg"] = pd.DataFrame(
             xd.uns["cosg"]["names"], columns=xd.uns["cosg"]["names"].dtype.names
         )[str(label_a)].values
+
+
         methods_scanpy = ["wilcoxon", "t-test"]
 
         for method_sc in methods_scanpy:
@@ -153,6 +156,16 @@ def main(
         for method in all_methods:
             for size in signatures_size:
                 selected_genes = ranked_genes[signature_key][method][:size]
+
+                if size == 20:
+                    top_genes_table.extend({
+                        "method": method,
+                        "comparison": signature_key,
+                        "gene": gene
+                    }
+                    for gene in enumerate(selected_genes, start=1)
+                    )
+
                 X_subset = xd[:, selected_genes].X
                 X_subset = (
                     X_subset.toarray() if hasattr(X_subset, "toarray") else X_subset
@@ -192,7 +205,10 @@ def main(
     res_df.to_csv(f"result/{output_filename}.csv")
     # with open("signatures.pickle", "wb") as f:
     #     pickle.dump(ranked_genes, f)
-    return res_df, runtime, ranked_genes
+    genes_df=pd.DataFrame(top_genes_table)
+    genes_df.to_csv(f"result/{output_filename}_top_genes.csv")
+
+    return res_df, runtime, ranked_genes, genes_df
 
 
 if __name__ == "__main__":
@@ -252,7 +268,7 @@ if __name__ == "__main__":
         label_column="label",
         classifier_method="svm",
         signatures_size=[i for i in range(1, 21)],
-        nb_clf_runs=3,
+        nb_clf_runs=10,
     )
 
     # save_results(results, comparison_mode, output_dir="results")

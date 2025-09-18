@@ -5,10 +5,11 @@ import argparse
 from pathlib import Path
 import anndata as ad
 import scanpy as sc
+from cycler import cycler
 
 
 def cellnum_vs_time():
-    datasets = ["citeseq", "pbmc", "lawlor"]
+    datasets = ["citeseq", "pbmc", "lawlor", "tcga", "sarc_ba"]
     cell_counts = {}
     for dataset in datasets:
         adata = sc.read_h5ad(f"data/{dataset}.h5ad")
@@ -25,6 +26,9 @@ def cellnum_vs_time():
     df_runtime["method"] = df_runtime.index
     df_runtime = df_runtime.reset_index(drop=True)
     df_runtime["cell_count"] = df_runtime["dataset"].map(cell_counts)
+
+    colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"]
+    plt.rcParams['axes.prop_cycle'] = cycler(color=colors)
 
 
     fig, ax= plt.subplots(figsize=(8, 6))

@@ -1,137 +1,76 @@
-import argparse
-from pathlib import Path
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-
-# Load the CSVs
-# scanpy_wilcoxon = pd.read_csv(
-#     "output/TCGA/benchmark_mcc_scores_TCGA_scanpy_wilcoxon_one-vs-rest.csv"
-# )
-# cosg = pd.read_csv(
-#     "output/TCGA/benchmark_mcc_scores_TCGA_cosg.csv"
-# )
-# yomix = pd.read_csv(
-#     "output/TCGA/yomix-Sheet1.csv"
-# )
-# scanpy_ttest = pd.read_csv(
-#     "output/TCGA/benchmark_mcc_scores_TCGA_scanpy_t-test_one-vs-rest.csv"
-# )
-# # Add method labels
-# yomix["Method"] = "Yomix"
-# scanpy_wilcoxon["Method"] = "Scanpy Wilcoxon"
-# scanpy_ttest["Method"] = "Scanpy T-Test"
-# cosg["Method"] = "COSG"
-
-# merged = pd.concat([yomix, scanpy_wilcoxon, scanpy_ttest, cosg], ignore_index=True)
-
-# for col in merged.columns:
-#     if any(x in col for x in ["mcc", "precision", "recall", "f1"]):
-#         merged[col] = pd.to_numeric(merged[col], errors="coerce")
-
-# target_labels = [
-#     "N_Liver_vs_rest",
-#     "T_OV_vs_Rest",
-#     "T_CESC_vs_Rest",
-#     "T_SARC_vs_Rest",
-#     "T_DLBC_vs_Rest",
-#     "T_CHOL_vs_Rest",
-#     "N_Adipose_Tissue_vs_Rest",
-#     "N_Heart_vs_Rest",
-#     "N_Vagina_vs_Rest",
-#     "N_Cervix_Uteri_vs_Rest",
-# ]
-
-# merged["Benchmark"] = merged["Benchmark"].str.lower().str.strip()
-# target_labels = [x.lower() for x in target_labels]
-# filtered = merged[merged["Benchmark"].isin(target_labels)]
+import os
 
 
-# feature_sizes = [1, 3, 10, 20]
+datasets = ["citeseq", "meth", "lawlor", "pbmc", "tcga"]
+result_dir = "/result"
+features_to_include = [1, 3, 5, 10, 15, 20]
 
-# for label in target_labels:
-#     plt.figure(figsize=(10, 6))
-#     label_df = filtered[filtered["Benchmark"] == label]
+sns.set_style("whitegrid")
+sns.set_context("paper", font_scale=1.5)
 
-#     for method in label_df["Method"].unique():
-#         method_df = label_df[label_df["Method"] == method]
-
-#         mcc_means = []
-#         mcc_stds = []
-
-#         for size in feature_sizes:
-#             mean_col = f"{size}_features_mcc"
-#             std_col = f"{size}_features_mcc_std"
-#             mcc_means.append(method_df[mean_col].mean())
-#             mcc_stds.append(method_df[std_col].mean())
-
-#         plt.errorbar(
-#             feature_sizes,
-#             mcc_means,
-#             yerr=mcc_stds,
-#             label=method,
-#             capsize=4,
-#             marker="o",
-#             linestyle="-",
-#         )
-
-#     plt.title(f"MCC Scores for {label}")
-#     plt.xlabel("Number of Features")
-#     plt.ylabel("Mean MCC Score")
-#     plt.xticks(feature_sizes)
-#     plt.grid(True)
-#     plt.legend(title="Method")
-#     plt.tight_layout()
-#     plt.show()
+fig, axes = plt.subplots(2, 3, figsize=(18, 10), sharex=True, sharey=True)
+axes = axes.flatten()
 
 
-# for label in res_df.label_vs_rest.unique():
-#     sns.set_theme(rc={"figure.figsize": (7, 6)})
-#     ax = sns.pointplot(
-#         data=res_df[res_df["label_vs_rest"] == label],
-#         x="nb_genes",
-#         y="mcc",
-#         hue="method",
-#         errorbar="sd",
-#     )
-#     ax.set_xlabel("Number of best features used as input")
-#     if label[-1] in ["T", "B", "c"]:
-#         suffix = "cells"
-#     else:
-#         suffix = ""
-#     ax.set_title(f"Svm Performance comparison on {label} {suffix}")
-#     plt.show()
+handles, labels = None, None
 
+for i, dataset in enumerate(datasets):
+    file_path = os.path.join(result_dir, f"{dataset}.csv")
+    if not os.path.exists(file_path):
+        print(f"Warning: file {file_path} not found, skipping.")
+        continue
 
-def performance_per_features(file):
+    df = pd.read_csv(file_path, index_col=0)
+    filtered_df = df[df['nb_genes'].isin(features_to_include)]
 
-    res_df = pd.read_csv(file, index_col=0)
-    sns.set_theme(rc={"figure.figsize": (7, 6)})
-    ax = sns.pointplot(
-        data=res_df,
+    ax = axes[i]
+    sns.pointplot(
+        data=filtered_df,
         x="nb_genes",
         y="mcc",
         hue="method",
+        palette="colorblind",
+        markers=["o", "s", "D", "v", "^", "<", ">"],
+        linestyles=["-", "--", "-.", ":", "-", "--", "-."],
         errorbar="sd",
-    )
-    ax.set_xlabel("Number of best features used as input")
-    # if label[-1] in ["T", "B", "c"]:
-    #     suffix = "cells"
-    # else:
-    #     suffix = ""
-    ax.set_title("SVM Performance Comparison On TCGA")
-    plt.show()
-
-
-if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        "file", type=str, nargs="?", default=None, help="the _runtime.csv file to open"
+        capsize=.1,
+        ax=ax
     )
 
-    args = parser.parse_args()
+    ax.set_title(dataset.upper(), fontsize=14, weight="bold")
+    ax.tick_params(axis='x', labelsize=10)
+    ax.tick_params(axis='y', labelsize=10)
 
-    filearg = Path(args.file)
-    performance_per_features(filearg.absolute())
+    
+    if handles is None and labels is None:
+        handles, labels = ax.get_legend_handles_labels()
+    ax.get_legend().remove()
+
+
+fig.delaxes(axes[-1])
+
+# Common X and Y labels
+fig.text(0.5, 0.07, "Number of Top Features", ha='center', fontsize=16, weight="bold")
+fig.text(0.02, 0.5, "Matthews Correlation Coefficient (MCC)", va='center', rotation='vertical',
+         fontsize=16, weight="bold")
+
+fig.legend(
+    handles, labels,
+    loc="lower right",
+    bbox_to_anchor=(0.95, 0.05),
+    ncol=2,  
+    fontsize=12,
+    title="Method",
+    title_fontsize=13,
+    frameon=True,
+    facecolor='white',
+    edgecolor='black',
+    framealpha=1
+)
+
+plt.tight_layout(rect=[0.03, 0.08, 1, 0.95])  
+plt.savefig("comparison_all_datasets.png", dpi=300)
+print("Plot saved as 'comparison_all_datasets.png'")

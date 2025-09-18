@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib_venn import venn2
-
+'''
 # Load the CSV files
 cosg_df = pd.read_csv("/home/nisma/top20_cosg_all_labels.csv")
 scanpy_df = pd.read_csv("/home/nisma/top20_scanpy_wilcoxon_all_labels.csv")
@@ -63,3 +63,46 @@ venn2([yomix_genes, scanpy_genes_ttest], set_labels=("Yomix", "Scanpy t-test"))
 plt.title("Yomix vs Scanpy t-test")
 plt.tight_layout()
 plt.show()
+'''
+
+import pandas as pd
+
+# Load data
+df = pd.read_csv("result/pbmc_top_genes.csv")
+
+# Filter only for CD8 T_vs_rest
+df_cd8 = df[df["comparison"] == "CD8 T_vs_rest"]
+
+# Methods to compare
+yomix_method = "yomix"
+other_methods = ["scanpy_wilcoxon", "scanpy_t-test", "cosg"]
+
+# Clean gene names
+def clean_gene_name(g):
+    g = str(g)
+    if "," in g:  # Handle tuple-like strings
+        parts = g.split(",")
+        return parts[1].strip().strip("')\" ")
+    return g.strip()
+
+# Yomix gene set
+yomix_genes = set(df_cd8[df_cd8["method"] == yomix_method]["gene"].apply(clean_gene_name))
+
+# Prepare results table
+comparison_rows = []
+for method in other_methods:
+    method_genes = set(df_cd8[df_cd8["method"] == method]["gene"].apply(clean_gene_name))
+    common_genes = sorted(yomix_genes & method_genes)
+    comparison_rows.append({
+        "Method": f"{yomix_method} vs {method}",
+        "Common Genes Count": len(common_genes),
+        "Common Genes": ", ".join(common_genes)
+    })
+
+# Create DataFrame
+comparison_df = pd.DataFrame(comparison_rows)
+
+# Save table
+comparison_df.to_csv("CD8T_yomix_comparison.csv", index=False)
+
+print(comparison_df)
